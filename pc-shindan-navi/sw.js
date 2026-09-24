@@ -2,7 +2,7 @@
 // 画面やプログラム（html / js / css）は「まずネットから最新を取り 取れなければ保存分を使う」
 // 写真やアイコンは「保存分を先に使う」
 // 中身を更新したら CACHE の番号を1つ上げる
-const CACHE = 'pcshindan-v8';
+const CACHE = 'pcshindan-v9';
 const ASSETS = [
   './', 'index.html', 'app.js', 'style.css', 'manifest.json',
   'photos/laptop-setup.png', 'photos/support-consultation.png',

@@ -121,7 +121,8 @@ function aside(stage){return `<aside class="sidebar"><div class="eyebrow">PC TRO
 function choice(answer,label,sub){return `<button class="choice ${answer==='no'?'no':''}" data-answer="${answer}"><span class="choice-label">${answer==='yes'?tick:cross}${label}</span><small>${sub}</small></button>`;}
 function topline(label,n){return `<div class="topline"><span class="tag">${label}</span><span class="count"><b>${String(n).padStart(2,'0')}</b> / ${QUESTION_MAX}</span></div><div class="progress" aria-label="全${QUESTION_MAX}問中${n}問目">${Array.from({length:QUESTION_MAX},(_,i)=>i+1).map(i=>`<span class="${i<=n?'on':''}"></span>`).join('')}</div>`;}
 // 基本診断費の案内（最初の画面でいちばん大きく見せる）
-const feeBanner=()=>`<div class="fee-banner" role="note"><span class="fee-lead">パソコンの診断には</span><span class="fee-amount"><span class="fee-name">基本診断費</span><span class="fee-price">${FEE}</span></span><span class="fee-tail">がかかります　</span></div>`;
+// 3行に分けて見せる：「パソコン診断には」「基本診断費 2,200円」「がかかります」
+const feeBanner=()=>`<div class="fee-banner" role="note"><span class="fee-lead">パソコン診断には</span><span class="fee-amount"><span class="fee-name">基本診断費</span><span class="fee-price">${FEE}</span></span><span class="fee-tail">がかかります　</span></div>`;
 function render(focus=true){
  let html,stage=0;
  if(screen==='admin'){main.innerHTML=`<div class="stage admin-stage">${adminView()}</div>`;window.scrollTo({top:0,behavior:'instant'});return;}
