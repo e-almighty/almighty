@@ -146,6 +146,14 @@
 .choices.symptoms .choice small{font-size:13px;margin-top:6px;line-height:1.5}
 .choices.symptoms .choice::after{right:12px;width:9px;height:9px}
 @media(max-width:600px){.choices.symptoms{grid-template-columns:1fr 1fr;gap:10px}.choices.symptoms .choice{min-height:96px;padding:12px 26px 12px 12px}.choices.symptoms .choice-label{font-size:17px}.choices.symptoms .choice small{font-size:12px}}
-.pack-cards.two{grid-template-columns:repeat(2,1fr)}
-@media(max-width:900px){.pack-cards.two{grid-template-columns:1fr}}
-.welcome .question-lead{margin-bottom:18px}
+
+/* 基本診断費の案内：最初の画面でいちばん大きく目立たせる（診断ナビで追加） */
+.fee-banner{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:0 0 22px;padding:18px 24px 20px;border-radius:20px;background:linear-gradient(135deg,#fff8e6 0%,#fff1c9 100%);border:3px solid #f0b429;box-shadow:0 12px 30px rgba(181,30,43,.18),inset 0 1px 0 #fff;font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Rounded Mplus 1c","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-feature-settings:"palt"}
+.fee-lead,.fee-tail{font-size:clamp(22px,2.4vw,30px);font-weight:700;color:#142449;white-space:nowrap}
+.fee-amount{display:inline-flex;align-items:baseline;gap:12px;white-space:nowrap}
+.fee-name{font-size:clamp(28px,3.2vw,40px);font-weight:900;color:#b51e2b;text-shadow:0 2px 0 #fff,0 4px 10px rgba(181,30,43,.25)}
+.fee-price{font-size:clamp(46px,5.6vw,72px);font-weight:900;line-height:1;color:#b51e2b;letter-spacing:.02em;font-variant-numeric:tabular-nums;text-shadow:0 3px 0 #fff,0 8px 18px rgba(181,30,43,.35)}
+.welcome .question-area{padding-top:12px}
+.welcome .question-area h1{font-size:clamp(26px,2.6vw,30px)}
+@media(max-width:900px){.fee-banner{padding:16px 18px 18px}.fee-price{font-size:clamp(40px,7vw,60px)}}
+@media(max-width:600px){.fee-banner{gap:4px 8px;padding:14px 16px 16px;border-radius:16px}.fee-lead,.fee-tail{font-size:19px}.fee-name{font-size:24px}.fee-price{font-size:44px}.fee-amount{gap:8px}}

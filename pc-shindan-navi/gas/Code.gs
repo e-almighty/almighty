@@ -12,7 +12,7 @@
 // 合言葉が合わない送信はすべて断る　同じお客様（同じID）の記録は上書きされる
 
 const PASS = 'ここに合言葉を入れる';
-const HEADER = ['ID', '日時', 'iPad', '残したいデータ', 'Windowsのパスワード', '心当たり', 'お困りの症状', '次のステップ', '最後の選択', '受付', '受付した次のステップ', '受信日時'];
+const HEADER = ['ID', '日時', 'iPad', '残したいデータ', 'Windowsのパスワード', '心当たり', 'お困りの症状', '受付', '受信日時'];
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -24,7 +24,7 @@ function doPost(e) {
     if (!r.id) return reply({ ok: false, error: '記録のIDがありません' });
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
     if (sheet.getLastRow() === 0) sheet.appendRow(HEADER);
-    const row = [r.id, r.at, r.device, r.data, r.pcpass, r.change, r.symptom, r.next, r.consult, r.outcome, r.outcomeNext, new Date()].map(v => v == null ? '' : String(v));
+    const row = [r.id, r.at, r.device, r.data, r.pcpass, r.change, r.symptom, r.outcome, new Date()].map(v => v == null ? '' : String(v));
     const last = sheet.getLastRow();
     const ids = last > 1 ? sheet.getRange(2, 1, last - 1, 1).getValues().map(v => String(v[0])) : [];
     const i = ids.indexOf(String(r.id));
