@@ -61,8 +61,9 @@ const ansOf=(r,id)=>{const x=r.answers.find(v=>v.q===id);return x?answerLabel(id
 const symptomName=r=>SYMPTOMS[r.symptom]?SYMPTOMS[r.symptom].label:'';
 const when=iso=>{const d=new Date(iso),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());};
 // 未送信の記録を1件ずつ受付窓口へ送る　同じお客様の記録は上書きされる　電波がないときは次の機会に送る
+// app と fee は 相談ナビと同じ受付窓口に送るときの振り分けと売上計算に使う（引き継ぎ画面まで進んだ1件＝基本診断費1回分）
 function toRow(r){
- return {id:r.id,at:when(r.at),device:r.device || loadSettings().device,data:ansOf(r,'data'),pcpass:ansOf(r,'pcpass'),change:ansOf(r,'change'),symptom:symptomName(r)};
+ return {app:'診断ナビ',fee:2200,id:r.id,at:when(r.at),device:r.device || loadSettings().device,data:ansOf(r,'data'),pcpass:ansOf(r,'pcpass'),change:ansOf(r,'change'),symptom:symptomName(r)};
 }
 async function syncRecords(){
  const s=loadSettings();
