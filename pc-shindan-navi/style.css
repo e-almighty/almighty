@@ -156,3 +156,7 @@
 .welcome .question-area h1{font-size:clamp(26px,2.6vw,30px)}
 @media(max-width:900px){.fee-banner{padding:16px 18px 18px}.fee-price{font-size:clamp(40px,7vw,60px)}}
 @media(max-width:600px){.fee-banner{gap:4px 8px;padding:14px 16px 16px;border-radius:16px}.fee-lead,.fee-tail{font-size:19px}.fee-name{font-size:24px}.fee-price{font-size:44px}.fee-amount{gap:8px}}
+
+/* 引き継ぎ画面：技術スタッフに代わる旨（診断ナビで追加） */
+.handoff-note{margin:0 0 12px;font-size:clamp(24px,2.6vw,30px);font-weight:700;line-height:1.5;color:var(--blue);font-feature-settings:"palt"}
+@media(max-width:600px){.handoff-note{font-size:21px}}
