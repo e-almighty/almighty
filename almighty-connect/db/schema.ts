@@ -1,0 +1,5 @@
+import { sqliteTable, text, integer, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
+export const consultations=sqliteTable('consultations',{id:text('id').primaryKey(),tenant:text('tenant').notNull(),store:text('store').notNull(),staff:text('staff'),status:text('status').notNull(),created:integer('created').notNull(),expires:integer('expires').notNull(),version:integer('version').notNull().default(0),payload:text('payload').notNull()},t=>[uniqueIndex('one_open_store').on(t.tenant,t.store).where(sql`${t.status} != 'ended'`),uniqueIndex('one_active_staff').on(t.tenant,t.staff).where(sql`${t.status} = 'active'`)]);
+export const presence=sqliteTable('presence',{tenant:text('tenant').notNull(),slot:text('slot').notNull(),ready:integer('ready').notNull(),seen:integer('seen').notNull()},t=>[primaryKey({columns:[t.tenant,t.slot]})]);
+export const receiverConnections=sqliteTable('receiver_connections',{tenant:text('tenant').notNull(),slot:text('slot').notNull(),client:text('client').notNull(),ready:integer('ready').notNull(),seen:integer('seen').notNull()},t=>[primaryKey({columns:[t.tenant,t.slot,t.client]})]);
