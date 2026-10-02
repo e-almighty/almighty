@@ -21,6 +21,12 @@
 <a class="skip" href="#main">本文へ</a>
 <canvas id="sparkle" aria-hidden="true"></canvas>
 
+<div class="hqbar">
+  <div class="wrap">
+    <a class="hqbar-brand" href="https://j-sa.jp/" target="_blank" rel="noopener"><span class="jsa-mark">JSA</span><span><b data-text="org.parent">日本営業協会</b><small>【公式】<span data-text="org.parentEn">Japan Sales Association</span></small></span></a>
+    <ul class="hqnav" id="hqnav"></ul>
+  </div>
+</div>
 <header class="header">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="七転び八起会 トップへ">
@@ -35,9 +41,10 @@
 <main id="main">
 <!-- ===== ヒーロー ===== -->
 <section class="hero" id="top">
+  <div class="hero-photo" id="hero-photo" aria-hidden="true"></div>
   <div class="wrap">
     <div>
-      <p class="eyebrow"><span data-text="org.parent">日本営業協会</span>　<span data-text="org.branch">関西支部</span></p>
+      <p class="eyebrow"><span class="jsa-mark small">JSA</span><span data-text="org.parent">日本営業協会</span>　<span data-text="org.branch">関西支部</span></p>
       <h1><span data-text="org.tagline" data-phrases>転んでも、また起きる。</span><span class="sub" data-text="org.taglineSub">関西の営業が、仲間と立ち上がる場所。</span></h1>
       <div class="name"><span class="org" data-text="org.nameEn">NANAKOROBI YAOKI</span><span class="kai" data-text="org.name">七転び八起会</span></div>
       <p class="lead" data-text="org.lead"></p>
@@ -69,7 +76,7 @@
       <p>失敗を恐れず、何度でも立ち上がる。だるまのように。</p>
     </div>
     <div class="about-body">
-      <p class="text reveal" data-text="org.lead"></p>
+      <div><p class="text reveal" data-text="org.lead"></p><figure class="photo-slot reveal" id="about-photo" hidden></figure></div>
       <ul class="facts reveal">
         <li><b>名称</b><span><span data-text="org.parent"></span> <span data-text="org.branch"></span>「<span data-text="org.name"></span>」（<span data-text="org.nameKana"></span>）</span></li>
         <li><b>発足</b><span data-text="org.founded"></span></li>
@@ -86,7 +93,7 @@
 </section>
 
 <!-- ===== 活動内容 ===== -->
-<section class="section alt" id="activity">
+<section class="section alt" id="activity" data-photo="activity">
   <div class="wrap">
     <div class="section-head">
       <span class="num">02</span><span class="en">Activity</span>

@@ -6,14 +6,33 @@
    直したら version の数字を 1 つ上げ CHANGELOG.md に 1 行足してください
    ===================================================================== */
 window.SITE = {
-  version: 5,                       // ← 直すたびに 1 つ上げる（画面の右下に出ます）
+  version: 6,                       // ← 直すたびに 1 つ上げる（画面の右下に出ます）
   updated: "2026-10-02",            // ← 直した日
   look3d: true,                     // ← 立体（3D風）の見た目。false にすると版2の平らな見た目に戻る
+
+  /* ---- 写真（ファイルを assets/photos/ に置いて名前を書く。空なら写真なし） ---- */
+  photos: {
+    hero: "",            // 例 "assets/photos/hero.jpg"  … だるまの背景（本部サイトの写真や交流会の写真）
+    about: "",           // 例 "assets/photos/about.jpg" … 「七転び八起会とは」の横
+    activity: ""         // 例 "assets/photos/activity.jpg" … 活動内容の帯の背景
+  },
+
+  /* ---- 本部（日本営業協会）のメニュー。ヘッダー上の細い帯に出ます ---- */
+  hqNav: [
+    { label: "初めての方",     url: "https://j-sa.jp/business/" },
+    { label: "協会について",   url: "https://j-sa.jp/about/" },
+    { label: "企業を探す",     url: "https://j-sa.jp/s/" },
+    { label: "営業のガッコウ", url: "https://j-sa.jp/school/" },
+    { label: "イベント",       url: "https://j-sa.jp/contents/1/81" },
+    { label: "会費体系",       url: "https://j-sa.jp/price.html" }
+  ],
 
   /* ---- 名前まわり ---- */
   org: {
     parent: "日本営業協会",
     parentEn: "Japan Sales Association",
+    parentShort: "JSA",
+    parentSlogan: "日本の営業のイメージ向上を目指して",
     parentUrl: "https://j-sa.jp/",
     branch: "関西支部",
     name: "七転び八起会",

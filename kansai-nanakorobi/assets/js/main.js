@@ -31,6 +31,16 @@
     });
     document.title = o.name + "｜" + o.parent + " " + o.branch;
 
+    /* 本部メニュー（上の細い帯） */
+    var hqn = $("#hqnav");
+    if (hqn && S.hqNav) hqn.innerHTML = S.hqNav.map(function (n) { return '<li><a href="' + h(n.url) + '" target="_blank" rel="noopener">' + h(n.label) + "</a></li>"; }).join("");
+
+    /* 写真（設定があるときだけ出す） */
+    var ph = S.photos || {};
+    var hp = $("#hero-photo"); if (hp && ph.hero) { hp.style.backgroundImage = "url('" + ph.hero + "')"; hp.classList.add("has-photo"); }
+    var ap = $("#about-photo"); if (ap && ph.about) { ap.innerHTML = '<img src="' + h(ph.about) + '" alt="' + h(o.name) + 'の活動のようす" loading="lazy">'; ap.hidden = false; }
+    var sec = document.querySelector('[data-photo="activity"]'); if (sec && ph.activity) { sec.style.setProperty("--photo", "url('" + ph.activity + "')"); sec.classList.add("has-photo"); }
+
     /* メニュー */
     var nav = $("#nav");
     if (nav && S.nav) nav.innerHTML = S.nav.map(function (n) { return '<li><a href="#' + h(n.id) + '">' + h(n.label) + "</a></li>"; }).join("");
