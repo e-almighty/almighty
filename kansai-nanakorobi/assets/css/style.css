@@ -242,26 +242,32 @@ button{font:inherit;cursor:pointer}
 .daruma-stage{position:relative;width:min(100%,460px);aspect-ratio:460/400;margin-inline:auto}
 .daruma-stage .floor{position:absolute;left:4%;right:4%;bottom:6%;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent)}
 .daruma-stage .shadow{position:absolute;left:50%;bottom:4%;width:40%;height:5%;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);transform:translateX(-50%);animation:shadow-move 9s ease-in-out infinite alternate}
-.daruma-roll{position:absolute;left:50%;bottom:6%;width:52%;margin-left:-26%;transform-origin:50% 100%;animation:tumble 9s ease-in-out infinite alternate}
+.daruma-roll{position:absolute;left:50%;bottom:6%;width:52%;margin-left:-26%;transform-origin:50% 56%;animation:tumble 9s ease-in-out infinite alternate}
+.daruma-rock{transform-origin:50% 100%;animation:rock 9s linear infinite alternate}
 .daruma-roll img,.daruma-roll svg{width:100%;height:auto;display:block;transform-origin:50% 100%}
 .daruma-stage .word{position:absolute;left:0;right:0;top:0;text-align:center;font-family:var(--font-display);font-size:clamp(14px,1.4vw,16px);letter-spacing:.3em;color:var(--on-ai-2);opacity:.85}
+/* 転がり：体の中心を軸に 回りながら横へ */
 @keyframes tumble{
-  0%  {transform:translateX(-48%) rotate(-540deg)}
-  30% {transform:translateX(0) rotate(0deg);animation-timing-function:ease-out}
-  34% {transform:translateX(0) rotate(-26deg)}
-  39% {transform:translateX(0) rotate(19deg)}
-  44% {transform:translateX(0) rotate(-12deg)}
-  49% {transform:translateX(0) rotate(6deg)}
-  53% {transform:translateX(0) rotate(-2deg)}
-  56% {transform:translateX(0) rotate(0deg)}
+  0%  {transform:translateX(-40%) rotate(-540deg)}
+  30% {transform:translateX(0) rotate(0deg)}
   72% {transform:translateX(0) rotate(0deg);animation-timing-function:ease-in}
-  100%{transform:translateX(48%) rotate(540deg)}
+  100%{transform:translateX(40%) rotate(540deg)}
+}
+/* 起き上がり：足元を軸に 揺れて止まる */
+@keyframes rock{
+  0%,30% {transform:rotate(0deg)}
+  34% {transform:rotate(-26deg)}
+  39% {transform:rotate(19deg)}
+  44% {transform:rotate(-12deg)}
+  49% {transform:rotate(6deg)}
+  53% {transform:rotate(-2deg)}
+  56%,100% {transform:rotate(0deg)}
 }
 @keyframes shadow-move{
-  0%  {transform:translateX(calc(-50% - 26%)) scaleX(.8);opacity:.7}
+  0%  {transform:translateX(calc(-50% - 22%)) scaleX(.8);opacity:.7}
   30% {transform:translateX(-50%) scaleX(1);opacity:1}
   72% {transform:translateX(-50%) scaleX(1);opacity:1}
-  100%{transform:translateX(calc(-50% + 26%)) scaleX(.8);opacity:.7}
+  100%{transform:translateX(calc(-50% + 22%)) scaleX(.8);opacity:.7}
 }
-@media (prefers-reduced-motion:reduce){.daruma-roll,.daruma-stage .shadow{animation:none}}
+@media (prefers-reduced-motion:reduce){.daruma-roll,.daruma-rock,.daruma-stage .shadow{animation:none}}
 @media (max-width:860px){.daruma-stage{width:min(80%,320px)}}
