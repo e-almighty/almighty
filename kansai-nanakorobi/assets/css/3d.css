@@ -23,7 +23,7 @@
 
 /* だるま：台座と反射、マウスに合わせて向きが変わる */
 .look3d .hero-art{transform-style:preserve-3d}
-.look3d .hero-art img,.look3d .hero-art svg{transform:rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));transition:transform .18s ease-out;will-change:transform;transform-origin:50% 100%;filter:drop-shadow(0 40px 36px rgba(0,0,0,.5)) drop-shadow(0 6px 6px rgba(0,0,0,.3))}
+.look3d .daruma-fall img,.look3d .daruma-fall svg{transform:rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));transition:transform .18s ease-out;will-change:transform;transform-origin:50% 100%;filter:drop-shadow(0 40px 36px rgba(0,0,0,.5)) drop-shadow(0 6px 6px rgba(0,0,0,.3))}
 .look3d .hero-art::before{display:none;content:"";position:absolute;left:50%;bottom:-6%;width:70%;height:12%;transform:translateX(-50%) rotateX(70deg);border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,255,255,.22),rgba(255,255,255,.06) 55%,transparent 72%);filter:blur(2px)}
 .look3d .hero-art::after{display:none;content:"";position:absolute;left:50%;top:50%;width:120%;height:120%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(74,144,255,.28),transparent 60%);z-index:-1;filter:blur(20px)}
 

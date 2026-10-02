@@ -26,13 +26,13 @@
   }
 
   function daruma() {
-    var hero = document.querySelector(".hero"), art = document.querySelector(".hero-art img, .hero-art svg");
+    var hero = document.querySelector(".hero"), art = document.querySelector(".daruma-fall img, .daruma-fall svg");
     if (!hero || !art) return;
     hero.addEventListener("mousemove", function (e) {
       var r = hero.getBoundingClientRect();
       var x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
-      art.style.setProperty("--ry", (x * 28).toFixed(2) + "deg");
-      art.style.setProperty("--rx", (-y * 16).toFixed(2) + "deg");
+      art.style.setProperty("--ry", (x * 14).toFixed(2) + "deg");
+      art.style.setProperty("--rx", (-y * 8).toFixed(2) + "deg");
       hero.style.setProperty("--px", (-x * 30).toFixed(1) + "px");
       hero.style.setProperty("--py", (-y * 20).toFixed(1) + "px");
     });

@@ -238,36 +238,70 @@ button{font:inherit;cursor:pointer}
 @media (max-width:600px){.member.slot:nth-of-type(n+4){display:none}}
 .hq-box{grid-template-columns:1fr}
 
-/* ---------- 版4：転がって起き上がるだるま ---------- */
-.daruma-stage{position:relative;width:min(100%,460px);aspect-ratio:460/400;margin-inline:auto}
+/* ---------- 版5：倒れて起き上がるだるま（右・左・後ろ） ---------- */
+.daruma-stage{position:relative;width:min(100%,460px);aspect-ratio:460/400;margin-inline:auto;perspective:900px;perspective-origin:50% 40%}
 .daruma-stage .floor{position:absolute;left:4%;right:4%;bottom:6%;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent)}
-.daruma-stage .shadow{position:absolute;left:50%;bottom:4%;width:40%;height:5%;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);transform:translateX(-50%);animation:shadow-move 9s ease-in-out infinite alternate}
-.daruma-roll{position:absolute;left:50%;bottom:6%;width:52%;margin-left:-26%;transform-origin:50% 56%;animation:tumble 9s ease-in-out infinite alternate}
-.daruma-rock{transform-origin:50% 100%;animation:rock 9s linear infinite alternate}
-.daruma-roll img,.daruma-roll svg{width:100%;height:auto;display:block;transform-origin:50% 100%}
+.daruma-stage .ring{position:absolute;left:50%;bottom:-2%;width:78%;height:16%;transform:translateX(-50%);border-radius:50%;border:1px solid rgba(255,255,255,.18);background:radial-gradient(ellipse at center,rgba(74,144,255,.28),rgba(74,144,255,.05) 60%,transparent 72%);animation:ring-pulse 4s ease-in-out infinite}
+.daruma-stage .shadow{position:absolute;left:50%;bottom:4%;width:42%;height:6%;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.6),transparent 70%);transform:translateX(-50%);animation:shadow-fall 14s ease-in-out infinite}
+.daruma-fall{position:absolute;left:50%;bottom:6%;width:46%;margin-left:-23%;transform-origin:50% 100%;transform-style:preserve-3d;animation:fall-cycle 14s ease-in-out infinite}
+.daruma-fall img,.daruma-fall svg{width:100%;height:auto;display:block;transform-origin:50% 100%;filter:drop-shadow(0 24px 22px rgba(0,0,0,.45))}
+.daruma-fall::after{content:"";position:absolute;inset:0 0 2% 0;border-radius:48% 48% 44% 44%/40% 40% 50% 50%;background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.35),transparent 42%);pointer-events:none;mix-blend-mode:screen}
 .daruma-stage .word{position:absolute;left:0;right:0;top:0;text-align:center;font-family:var(--font-display);font-size:clamp(14px,1.4vw,16px);letter-spacing:.3em;color:var(--on-ai-2);opacity:.85}
-/* 転がり：体の中心を軸に 回りながら横へ */
-@keyframes tumble{
-  0%  {transform:translateX(-40%) rotate(-540deg)}
-  30% {transform:translateX(0) rotate(0deg)}
-  72% {transform:translateX(0) rotate(0deg);animation-timing-function:ease-in}
-  100%{transform:translateX(40%) rotate(540deg)}
+.daruma-stage .spark{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px rgba(255,240,180,.8);opacity:0;animation:twinkle 3.2s ease-in-out infinite}
+.daruma-stage .spark:nth-child(1){left:18%;top:28%;animation-delay:0s}
+.daruma-stage .spark:nth-child(2){left:80%;top:22%;animation-delay:.9s}
+.daruma-stage .spark:nth-child(3){left:72%;top:62%;animation-delay:1.7s}
+.daruma-stage .spark:nth-child(4){left:14%;top:66%;animation-delay:2.4s}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes ring-pulse{0%,100%{opacity:.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}
+/* 右に倒れて起きる → 左に倒れて起きる → 後ろに倒れて起きる（14秒で1周） */
+@keyframes fall-cycle{
+  0%  {transform:rotateZ(0)}
+  6%  {transform:rotateZ(74deg);animation-timing-function:ease-in}
+  9%  {transform:rotateZ(76deg)}
+  16% {transform:rotateZ(-16deg)}
+  20% {transform:rotateZ(10deg)}
+  23% {transform:rotateZ(-5deg)}
+  26% {transform:rotateZ(0)}
+  33% {transform:rotateZ(0)}
+  39% {transform:rotateZ(-74deg);animation-timing-function:ease-in}
+  42% {transform:rotateZ(-76deg)}
+  49% {transform:rotateZ(16deg)}
+  53% {transform:rotateZ(-10deg)}
+  56% {transform:rotateZ(5deg)}
+  59% {transform:rotateZ(0)}
+  66% {transform:rotateZ(0)}
+  72% {transform:rotateX(-62deg) translateZ(-30px);animation-timing-function:ease-in}
+  75% {transform:rotateX(-64deg) translateZ(-30px)}
+  82% {transform:rotateX(14deg)}
+  86% {transform:rotateX(-9deg)}
+  89% {transform:rotateX(4deg)}
+  92% {transform:rotateX(0)}
+  100%{transform:rotateZ(0)}
 }
-/* 起き上がり：足元を軸に 揺れて止まる */
-@keyframes rock{
-  0%,30% {transform:rotate(0deg)}
-  34% {transform:rotate(-26deg)}
-  39% {transform:rotate(19deg)}
-  44% {transform:rotate(-12deg)}
-  49% {transform:rotate(6deg)}
-  53% {transform:rotate(-2deg)}
-  56%,100% {transform:rotate(0deg)}
+@keyframes shadow-fall{
+  0%,33%,66%,92%,100%{transform:translateX(-50%) scale(1);opacity:.9}
+  9%  {transform:translateX(10%) scale(1.4,.9);opacity:.6}
+  42% {transform:translateX(-110%) scale(1.4,.9);opacity:.6}
+  75% {transform:translateX(-50%) scale(1.1,1.6);opacity:.5}
 }
-@keyframes shadow-move{
-  0%  {transform:translateX(calc(-50% - 22%)) scaleX(.8);opacity:.7}
-  30% {transform:translateX(-50%) scaleX(1);opacity:1}
-  72% {transform:translateX(-50%) scaleX(1);opacity:1}
-  100%{transform:translateX(calc(-50% + 22%)) scaleX(.8);opacity:.7}
-}
-@media (prefers-reduced-motion:reduce){.daruma-roll,.daruma-rock,.daruma-stage .shadow{animation:none}}
+@media (prefers-reduced-motion:reduce){.daruma-fall,.daruma-stage .shadow,.daruma-stage .ring,.daruma-stage .spark{animation:none}}
 @media (max-width:860px){.daruma-stage{width:min(80%,320px)}}
+
+/* ---------- 版5：画面全体の動き ---------- */
+@media (prefers-reduced-motion:no-preference){
+  .hero{background-size:200% 200%;animation:hero-drift 18s ease-in-out infinite alternate}
+  @keyframes hero-drift{0%{background-position:0% 0%}100%{background-position:100% 100%}}
+  .stat{animation:bob 6s ease-in-out infinite}
+  .stat:nth-child(2){animation-delay:-2s}.stat:nth-child(3){animation-delay:-4s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .section-head h2{position:relative}
+  .section-head h2::after{content:"";position:absolute;left:0;bottom:-10px;width:64px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--shu),var(--kin),var(--shu));background-size:200% 100%;animation:shine 3s linear infinite}
+  @keyframes shine{to{background-position:200% 0}}
+  .btn-primary{background-image:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);background-size:250% 100%;background-position:120% 0;background-repeat:no-repeat;animation:btn-sheen 4s ease-in-out infinite}
+  @keyframes btn-sheen{0%,60%{background-position:120% 0}100%{background-position:-120% 0}}
+  .value .kanji{animation:kanji-glow 4s ease-in-out infinite}
+  @keyframes kanji-glow{0%,100%{text-shadow:0 0 0 rgba(26,111,230,0)}50%{text-shadow:0 0 18px rgba(26,111,230,.45)}}
+}
+/* キラキラ用キャンバス（マウスの軌跡） */
+#sparkle{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}

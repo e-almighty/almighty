@@ -15,9 +15,11 @@
 <script src="site-data.js"></script>
 <script src="assets/js/main.js" defer></script>
 <script src="assets/js/3d.js" defer></script>
+<script src="assets/js/sparkle.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">本文へ</a>
+<canvas id="sparkle" aria-hidden="true"></canvas>
 
 <header class="header">
   <div class="wrap">
@@ -48,9 +50,11 @@
     <div class="hero-art" aria-hidden="true">
       <div class="daruma-stage">
         <div class="word">七転び八起き</div>
+        <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
+        <div class="ring"></div>
         <div class="floor"></div>
         <div class="shadow"></div>
-        <div class="daruma-roll"><div class="daruma-rock"><img src="assets/images/daruma.svg" alt="" width="320" height="340"></div></div>
+        <div class="daruma-fall"><img src="assets/images/daruma.svg" alt="" width="320" height="340"></div>
       </div>
     </div>
   </div>
