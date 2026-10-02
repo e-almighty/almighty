@@ -15,6 +15,13 @@
       "when": 1790904276515,
       "tag": "0001_spooky_taskmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790907426914,
+      "tag": "0002_odd_frank_castle",
+      "breakpoints": true
     }
   ]
 }

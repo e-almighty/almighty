@@ -10,3 +10,4 @@
 .device-settings{margin:24px 0;font-size:14px}.device-settings summary{cursor:pointer;color:#556982}.device-settings label{display:flex;gap:16px;align-items:center;margin:16px 0}.device-settings select{background:white;color:#132846;border:1px solid #c6d3e3;border-radius:8px;padding:10px}.device-settings button{margin:12px 8px}.portal-grid button.primary-link{border:0;cursor:pointer;margin-top:24px;text-align:left;display:flex;gap:12px;align-items:center}
 
 .connection-line{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:#526983;padding:8px 13px}.connection-line b{font-weight:650;color:#132846;word-break:break-all}
+.push-line{margin:18px auto 0;max-width:620px;font-size:14px;color:#526983;line-height:1.7}.push-line b{color:#1f6b3a}

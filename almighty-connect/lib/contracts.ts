@@ -2,8 +2,8 @@ import { z } from 'zod';
 export const deviceSchema = z.object({role:z.enum(['store','staff']),slot:z.string()}).refine(d=>d.role==='store'?['A','B'].includes(d.slot):['1','2','3','4','5'].includes(d.slot),'端末が不正です');
 export type Device = z.infer<typeof deviceSchema>;
 export type Prompt = {id:string;kind:'contact'|'microsoft'|'offer'|'guide';title:string;text:string;price?:number;answer?:Record<string,string>;answeredAt?:number};
-export type Session = {id:string;store:string;staff:string|null;status:'waiting'|'active'|'ended';created:number;expires:number;version:number;prompt:Prompt|null;messages:{id:string;role:string;text:string;at:number}[];outcome?:string};
-export type DeskState = {account?:string;sessions:Session[];staff:{slot:string;ready:number;seen:number}[];videoConfigured:boolean;now:number;available:number;queuePosition:number};
+export type Session = {id:string;store:string;staff:string|null;status:'waiting'|'active'|'ended';created:number;expires:number;version:number;prompt:Prompt|null;messages:{id:string;role:string;text:string;at:number}[];outcome?:string;pushes?:number;lastPush?:number};
+export type DeskState = {account?:string;pushPublicKey?:string;sessions:Session[];staff:{slot:string;ready:number;seen:number}[];videoConfigured:boolean;now:number;available:number;queuePosition:number};
 export const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('call'),requestId:z.string().uuid()}),
  z.object({action:z.literal('heartbeat'),ready:z.boolean(),clientId:z.string().uuid().optional()}),
@@ -13,6 +13,8 @@ export const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('message'),id:z.string().uuid(),text:z.string().trim().min(1).max(500)}),
  z.object({action:z.literal('end'),id:z.string().uuid(),outcome:z.enum(['completed','followup','cancelled'])}),
  z.object({action:z.literal('video'),id:z.string().uuid()}),
+ z.object({action:z.literal('subscribe'),subscription:z.object({endpoint:z.string().url().max(2000),keys:z.object({p256dh:z.string().min(1).max(200),auth:z.string().min(1).max(100)})})}),
+ z.object({action:z.literal('unsubscribe'),endpoint:z.string().url().max(2000)}),
 ]);
 export function validateAnswer(prompt:Prompt, raw:Record<string,string>){
  const shapes={
