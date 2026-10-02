@@ -3,7 +3,7 @@
     <radialGradient id="g" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#f06a52"/><stop offset=".6" stop-color="#d2452f"/><stop offset="1" stop-color="#8f2415"/></radialGradient>
     <radialGradient id="f" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#fff5e8"/><stop offset="1" stop-color="#f1dcc4"/></radialGradient>
   </defs>
-  <ellipse cx="160" cy="318" rx="110" ry="14" fill="#000" opacity=".25"/>
+  
   <path d="M160 18c-78 0-128 68-128 160 0 70 40 136 128 136s128-66 128-136C288 86 238 18 160 18z" fill="url(#g)"/>
   <path d="M160 70c-46 0-78 38-78 92 0 36 18 66 78 66s78-30 78-66c0-54-32-92-78-92z" fill="url(#f)"/>
   <path d="M118 128c10-12 28-14 40-6" fill="none" stroke="#2a1a14" stroke-width="7" stroke-linecap="round"/>
@@ -14,6 +14,6 @@
   <circle cx="186" cy="152" r="8" fill="none" stroke="#2a1a14" stroke-width="2" stroke-dasharray="3 3"/>
   <path d="M150 182q10 8 20 0" fill="none" stroke="#2a1a14" stroke-width="4" stroke-linecap="round"/>
   <path d="M104 206c20 14 92 14 112 0" fill="none" stroke="#2a1a14" stroke-width="5" stroke-linecap="round"/>
-  <text x="160" y="268" text-anchor="middle" font-family="'Shippori Mincho','Hiragino Mincho ProN',serif" font-size="46" font-weight="700" fill="#f6e3a1">起</text>
+  <text x="160" y="262" text-anchor="middle" font-family="'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif" font-size="34" font-weight="700" fill="#f6e3a1" letter-spacing="2">七転八起</text>
   <path d="M60 110c30-56 70-78 100-80" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".25"/>
 </svg>
