@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="七転び八起会のしるし">
+  <rect width="64" height="64" rx="16" fill="#15213f"/>
+  <path d="M32 10c-15 0-24 13-24 31 0 8 7 15 24 15s24-7 24-15c0-18-9-31-24-31z" fill="#d2452f"/>
+  <path d="M32 21c-8 0-13 7-13 16 0 6 3 10 13 10s13-4 13-10c0-9-5-16-13-16z" fill="#fff3e2"/>
+  <circle cx="27" cy="36" r="2.4" fill="#2a1a14"/><circle cx="37" cy="36" r="2.4" fill="#2a1a14"/>
+  <path d="M26 30q3-3 6-1M32 29q3-2 6 1" fill="none" stroke="#2a1a14" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
