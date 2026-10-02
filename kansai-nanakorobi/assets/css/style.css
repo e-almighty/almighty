@@ -230,3 +230,10 @@ button{font:inherit;cursor:pointer}
   .hero-art svg{animation:float 6s ease-in-out infinite}
   @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 }
+
+/* 版2：スマホで空き枠カードを小さく／会員名とバッジの折り返し */
+@media (max-width:600px){.member.slot{min-height:0;padding:18px}.member.slot p{font-size:13px;margin-top:4px}}
+.member .top{flex-wrap:wrap}
+.ph{display:inline-block}
+@media (max-width:600px){.member.slot:nth-of-type(n+4){display:none}}
+.hq-box{grid-template-columns:1fr}

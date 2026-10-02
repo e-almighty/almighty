@@ -23,7 +23,11 @@
     document.querySelectorAll("[data-text]").forEach(function (el) {
       var path = el.getAttribute("data-text").split(".");
       var v = S; path.forEach(function (k) { v = v == null ? undefined : v[k]; });
-      if (v != null && v !== "") el.textContent = v;
+      if (v != null && v !== "") {
+        if (el.hasAttribute("data-phrases")) { /* 読点で区切って 途中で改行しないようにする */
+          el.innerHTML = String(v).split(/(?<=[、。])/).filter(Boolean).map(function (ph) { return '<span class="ph">' + h(ph) + "</span>"; }).join("");
+        } else el.textContent = v;
+      }
     });
     document.title = o.name + "｜" + o.parent + " " + o.branch;
 
@@ -75,7 +79,7 @@
     /* 入会 */
     var j = S.join || {};
     var who = $("#join-who"); if (who && j.who) who.innerHTML = j.who.map(function (w) { return "<li>" + h(w) + "</li>"; }).join("");
-    var steps = $("#join-steps"); if (steps && j.steps) steps.innerHTML = j.steps.map(function (s) { return '<li class="reveal"><div></div><div><h3>' + h(s.title) + "</h3><p>" + h(s.text) + "</p></div></li>"; }).join("");
+    var steps = $("#join-steps"); if (steps && j.steps) steps.innerHTML = j.steps.map(function (s) { return '<li class="reveal"><div><h3>' + h(s.title) + "</h3><p>" + h(s.text) + "</p></div></li>"; }).join("");
 
     /* お知らせ */
     var nw = $("#news-list");
