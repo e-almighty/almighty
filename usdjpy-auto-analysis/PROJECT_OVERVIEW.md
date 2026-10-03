@@ -9,7 +9,7 @@ tags:
 created: 2026-10-03
 updated: 2026-10-03
 通貨ペア: USDJPY
-次の一手: SHOのPCでTradingViewから4時間足CSVを書き出し、本物のデータで画像を作ってSHOが線の引き方を確認する（STEP 3）
+次の一手: SHOが初回画像の線の引き方を確認（STEP 3）。XのAPIキーの有無と投稿回数を決めてもらい、X投稿部分をDRY RUNで作る
 ---
 
 # USDJPY 自動テクニカル分析・チャート投稿システム
@@ -19,24 +19,26 @@ updated: 2026-10-03
 
 依頼者：SHO ／ 引き継ぎメモ：2026-10-03 ／ 作業：Claude Code
 
-## 現在の状態（2026-10-03）
+## 現在の状態（2026-10-03 夜・セーブ時点）
 
 - **STEP 1 完了**：既存資産の棚卸しと TradingView 公式 MCP の確認 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/STEP1_報告_2026-10-03|STEP 1 報告]]
-- **STEP 2 試作完了（架空データで動作確認済み）**：4時間足について、データ読込 → スイング高安 → サポレジ → 相場環境 → トレンドライン → PNG → 日本語解説 まで。X 投稿なし
-- **未実施**：本物のドル円データでの実行（クラウドの作業部屋から市場データ元に通信できないため）。SHO の PC で TradingView MCP から CSV を書き出してもらう（下の「SHO の手順」）
+- **STEP 2 完了**：4時間足について、データ読込 → スイング高安 → サポレジ → 相場環境 → トレンドライン → PNG → 日本語解説 まで動く。**本物のドル円データ（TradingView から書き出した CSV）で実行し、画像と解説を SHO に提示済み** → [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-03_初回|初回結果]]。X 投稿はしていない
+- **STEP 3（今ここ）**：SHO が「線の引き方が自分の考えと合っているか」を確認中。感想をもらったら `config/analysis.yaml` と [[03_PROJECTS/USDJPY_Auto_Analysis/docs/ANALYSIS_RULES|ANALYSIS_RULES]] を直す
+- **X 自動投稿**：SHO の希望は「毎日自動投稿」。進め方は [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X自動投稿の進め方|X自動投稿の進め方]]。SHO 待ち：X の API キーの有無、投稿回数（1日1回か4回か）
+- 今日の作業の詳細 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-03|作業ログ 2026-10-03]]
 
 ## 役割分担（決定事項）
 
 | 時間足 | 役割 | 投稿 |
 |---|---|---|
-| 4時間足 | 定期の相場解説 | 09:00 / 13:00 / 17:00 / 21:00 JST（予定・まだ投稿しない） |
+| 4時間足 | 定期の相場解説 | まず 1日1回 9:00 JST から（SHO 確認後）。将来 09/13/17/21 |
 | 1時間足 | 中間アップデート | 設定ファイルで時刻指定（後で） |
 | 5分足 | 変化・速報（イベント駆動） | 条件成立時のみ（後で） |
 
-- データ元：TradingView MCP（Claude Code 内・15分以上遅延あり）／GMOコイン公開API（Python から直接・無料・キー不要）。試作は CSV と GMO。5分足の速報は遅延の小さい GMO を第一候補
-- ライン描画：**Python で投稿画像を生成**。Pine Script は TradingView 上で同じラインを見るための表示専用（STEP 3 で線のルールが固まってから作る）
-- 実行場所：SHO の Windows PC（X速報bot と同じ）。クラウド側は設計・コード・レビュー
-- X 投稿：既存の [[03_PROJECTS/X速報bot/PROJECT_OVERVIEW|X速報bot]] の投稿部分を共通化して使う（画像アップロードを追加）。**本番投稿 ON は SHO 確認後。最初は必ず DRY RUN**
+- データ元：TradingView MCP（Claude Code 内・15分以上遅延あり）／GMOコイン公開API（Python から直接・無料・キー不要）。定時実行は GMO を第一候補（PC での動作確認はまだ）。5分足の速報も遅延の小さい GMO
+- ライン描画：**Python で投稿画像を生成**。Pine Script は TradingView 上で同じラインを見るための表示専用（線のルールが固まってから作る）
+- 実行場所：SHO の Windows PC（X速報bot と同じ）。クラウド側は設計・コード・レビュー。クラウドの作業部屋は市場データ元に通信できない
+- X 投稿：[[03_PROJECTS/X速報bot/PROJECT_OVERVIEW|X速報bot]] の投稿部分を共通化し、画像アップロードを足す。**本番投稿 ON は SHO 確認後。最初は必ず DRY RUN**
 
 ## フォルダ
 
@@ -44,19 +46,19 @@ updated: 2026-10-03
 03_PROJECTS/USDJPY_Auto_Analysis/
   PROJECT_OVERVIEW.md   このノート
   README.md             動かし方
-  docs/                 STEP1 報告・ANALYSIS_RULES（線の引き方）
+  docs/                 STEP1_報告・ANALYSIS_RULES（線の引き方）・X自動投稿の進め方・作業ログ
   config/analysis.yaml  設定値（Pivot期間・ATR・ライン本数など。コードに埋め込まない）
   src/usdjpy_analysis/  Python 本体（market_data / indicators / swings / levels / trend / trendlines / chart / commentary / pipeline）
   run_4h.py             4時間足の実行入口（DRY RUN）
   tests/                動作テストと架空データ
-  data/                 ローソク足 CSV（TradingView MCP から書き出す）
-  output/               生成した PNG・解説 md・JSON
-  pine/                 TradingView 表示用（STEP 3 以降）
+  data/                 ローソク足 CSV（USDJPY_4H.csv 1000本・USDJPY_1D.csv 400本。2026-10-03 TradingView から書き出し）
+  output/               解説 md（画像 PNG は PC で実行すると同じ場所にできる）
+  pine/                 TradingView 表示用（STEP 3 以降・まだ空）
 ```
 
-## SHO の手順：本物のデータで画像を作る
+## SHO の手順：データを最新にして画像を作り直す
 
-1. SHO の PC の Claude Code（`claude`）に、次を貼る（TradingView MCP が接続済みであること）
+1. PC の Claude Code（`claude`）に貼る（TradingView MCP が接続済みであること）
 
    ```
    mcp-tradingview の mcp-tv-get-ohlcv で OANDA:USDJPY のローソク足を取得して CSV に保存して。
@@ -67,32 +69,42 @@ updated: 2026-10-03
    ```
 
 2. 「保存した」とクラウド側の Claude に伝える → Dropbox 経由で読み、画像と解説を作って見せる
-3. SHO が「線の引き方が自分の考えと合っているか」を見る（**STEP 3・ここが一番大事**）。直したい点を言葉で伝えれば `config/analysis.yaml` と `docs/ANALYSIS_RULES.md` を直す
-4. 線のルールが固まるまで、1時間足・5分足には広げない
+3. PC で自分で作る場合：このフォルダで `pip install -r requirements.txt` のあと `python run_4h.py --csv data/USDJPY_4H.csv --daily data/USDJPY_1D.csv`
 
 ## 開発の順番（引き継ぎメモより）
 
-1. ~~TradingView MCP 接続とツール確認~~ 完了
-2. ~~4時間足だけで試作（データ取得・高安・サポレジ・トレンド・トレンドライン・画像・解説）~~ 架空データで完了
+1. ~~TradingView MCP 接続とツール確認~~ 完了（2026-10-03）
+2. ~~4時間足だけで試作~~ 完了・本物データで実行済み（2026-10-03）
 3. **SHO が線の引き方を確認（今ここ）**
 4. 1時間足へ展開（4時間足の方向を参照）
 5. 5分足へ展開（4時間足・1時間足を上位足として参照）
 6. 画像の仕上げ（SNS に載せられる状態）
-7. X 投稿部分を X速報bot から再利用。DRY RUN で投稿文・画像・予定時刻を保存
+7. X 投稿部分を X速報bot から再利用。DRY RUN で投稿文・画像・予定時刻を保存 ← SHO の希望により、3 と並行して準備を始める
 8. SHO 確認後に X 本番投稿を有効化
 9. 必要なら Instagram
 
 ## やること（AI が進められる）
 
-- 本物のデータで `run_4h.py` を実行し、画像を SHO に見せる
-- `00_HOME/00_START_HERE.md` にこのフォルダへのリンクを1行足す（Dropbox 連携からは既存ファイルを書き換えられないため、SHO の PC の Claude Code で行う）
-- 線のルールが固まったら `pine/USDJPY_4H_Analyzer.pine` を作る
-- GMOコイン klines の取得を SHO の PC で実際に試す（`python run_4h.py --gmo`）
+- SHO の感想を受けて線のルールと設定を調整し、作り直す
+- `social/x_publisher.py`・`config/social.yaml`・定時実行バッチ・タスク スケジューラ手順（DRY RUN）
+- PC で `python run_4h.py --gmo` が動くか確認（GMOコイン klines は未検証）
+- 線のルール確定後に `pine/USDJPY_4H_Analyzer.pine`
+- 前日高値・安値をラインに加える案（ANALYSIS_RULES の「確認したいこと」）
+
+## セーブの約束
+
+「セーブして」と言われたら、①Vault に最新ファイル ②GitHub にコミット＋push ③その日の作業ログを `docs/` に 1 本、の 3 点セット。
+Vault が正本（Dropbox で全 PC に同期）。GitHub は履歴用：`e-almighty/almighty` のブランチ `claude/nice-sagan-kgqry5` の `usdjpy-auto-analysis/`。
+クラウド側の Claude は Dropbox 連携から既存ノートを書き換えられないので、`MEMORY.md`・`00_START_HERE.md`・`やりかけ一覧.md` への登録は PC 側の Claude Code に頼む（手順は作業ログの末尾）。
 
 ## 関連
 
+- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-03|作業ログ 2026-10-03]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/STEP1_報告_2026-10-03|STEP 1 報告（棚卸し・MCP確認）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/ANALYSIS_RULES|ANALYSIS_RULES（線の引き方・解説文のルール）]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X自動投稿の進め方|X自動投稿の進め方]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-03_初回|初回結果（2026-10-03）]]
+- [[01_MEMORY/usdjpy-auto-analysis|記憶ノート]]
 - [[03_PROJECTS/FX_PhoenixConfluence/PROJECT_OVERVIEW|FX_PhoenixConfluence（売買ストラテジー研究・別案件）]]
 - [[03_PROJECTS/X速報bot/PROJECT_OVERVIEW|X速報bot（投稿部分を流用）]]
 - [[05_SKILLS/fx-morning-report/SKILL|fx-morning-report（ラインの優先順位の出典）]]
