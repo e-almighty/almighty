@@ -111,14 +111,22 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     close_now = result["close"]
     ax.axhline(close_now, color=COLOR_NOW, linestyle=":", linewidth=1.0)
 
-    # 右端の価格ラベル
+    # 右端の価格ラベル（近すぎるラベルは上下にずらして重ならないようにする）
     x_label = n + 0.8
-    for lv in vis_sup:
-        ax.text(x_label, lv["price"], f"S {lv['price']:.3f}", color=COLOR_SUPPORT, fontsize=10, va="center", fontweight="bold")
-    for lv in vis_res:
-        ax.text(x_label, lv["price"], f"R {lv['price']:.3f}", color=COLOR_RESIST, fontsize=10, va="center", fontweight="bold")
-    ax.text(x_label, close_now, f"現在 {close_now:.3f}", color=COLOR_NOW, fontsize=10, va="center",
-            bbox=dict(boxstyle="round,pad=0.2", fc="white", ec=COLOR_NOW, lw=0.8))
+    labels = [(lv["price"], f"S {lv['price']:.3f}", COLOR_SUPPORT, False) for lv in vis_sup]
+    labels += [(lv["price"], f"R {lv['price']:.3f}", COLOR_RESIST, False) for lv in vis_res]
+    labels.append((close_now, f"現在 {close_now:.3f}", COLOR_NOW, True))
+    labels.sort(key=lambda t: t[0])
+    min_gap = (y_hi - y_lo) * 0.028
+    ys = [t[0] for t in labels]
+    for i in range(1, len(ys)):
+        if ys[i] - ys[i - 1] < min_gap:
+            ys[i] = ys[i - 1] + min_gap
+    for (price, text, color, boxed), y in zip(labels, ys):
+        kw = dict(color=color, fontsize=10, va="center", fontweight="bold")
+        if boxed:
+            kw["bbox"] = dict(boxstyle="round,pad=0.2", fc="white", ec=COLOR_NOW, lw=0.8)
+        ax.text(x_label, y, text, **kw)
     for key, color, name in (("trendline_up", COLOR_TREND_UP, "上昇TL"), ("trendline_down", COLOR_TREND_DN, "下降TL")):
         tl = result.get(key)
         if tl:
