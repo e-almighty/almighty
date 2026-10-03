@@ -1,0 +1,44 @@
+# USDJPY 自動テクニカル分析 — 解析の設定
+# 値を変えたらここだけ直す（コードには埋め込まない）。
+# STEP 3 で SHO が「線の引き方」を見て調整する前提の初期値。
+
+symbol: USDJPY            # 表示名
+pip: 0.01                 # 1pip の値（USDJPY = 0.01）
+timezone: Asia/Tokyo      # 表示に使う時刻
+
+timeframes:
+  4h:
+    label: 4時間足
+    bars_to_analyze: 300  # 解析に使う本数（約50日）
+    bars_to_plot: 120     # 画像に描く本数（約20日）
+    pivot_left: 5         # スイング判定：左側に何本の足より高い／低いか
+    pivot_right: 5        # スイング判定：右側に何本の足より高い／低いか（確定に必要）
+    atr_period: 14
+    cluster_atr_mult: 0.6 # サポレジのまとめ幅 = ATR × この値（近い高安を1本にまとめる）
+    min_separation_atr: 1.0 # 表示するライン同士の最小間隔（ATR 倍）
+    max_support: 3        # 表示するサポートの最大本数
+    max_resistance: 3     # 表示するレジスタンスの最大本数
+    ema_fast: 20
+    ema_slow: 50
+    trendline_candidates: 6     # トレンドライン候補に使う直近スイングの数
+    trendline_tolerance_atr: 0.3 # ラインに「触れた」とみなす幅（ATR 倍）
+    trendline_min_touches: 2     # 2点で引き、3点目があれば「有効性あり」
+    trendline_max_broken_age: 10 # ブレイクからこの本数より経った線は描かない（直近のブレイクだけ報告）
+    trendline_max_distance_atr: 6 # 線の現在値が現在値から ATR × この値より離れていたら描かない
+    round_number_step: 0.5       # 心理的節目の間隔（XX0.00 と XX5.00 → 0.5円刻み）
+
+higher_timeframe:
+  1D:
+    ema: 50               # 日足の大局判定に使う EMA（Phoenix 5分足版のゲートと同じ 50）
+
+# 相場環境の判定（スコア方式）。しきい値は STEP 3 で調整する
+trend:
+  strong_threshold: 3     # スコアがこれ以上なら「強い上昇」「強い下落」
+  weak_threshold: 2       # スコアがこれ以上なら「弱い上昇」「弱い下落」。それ未満はレンジ
+  ema_slope_bars: 10      # EMA の傾きを見る本数
+  ema_slope_atr: 0.2      # 傾きが ATR × この値を超えたら「上向き／下向き」
+
+output:
+  image_width_px: 1600
+  image_height_px: 900
+  dpi: 100
