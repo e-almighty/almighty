@@ -9,7 +9,8 @@
   1. 終値が EMA(slow) の上か下か
   2. EMA(fast) が EMA(slow) の上か下か
   3. EMA(slow) の傾き（直近 N 本の変化が ATR × しきい値を超えるか）
-  4. 高値・安値の切り上げ／切り下げ（直近の確定スイング 2 組）
+  4. 高値・安値の切り上げ／切り下げ（第2ステージからはダウ理論の構造（structure.dow_state）をそのまま使う。
+     structure=None のときは直近の確定スイング 2 組で簡易判定）
 """
 from __future__ import annotations
 
@@ -64,6 +65,7 @@ def classify(
     ema_slope_bars: int,
     ema_slope_atr: float,
     ema_long: np.ndarray | None = None,
+    structure: tuple[int, str] | None = None,
 ) -> TrendResult:
     c = float(close[-1])
     ef, es, a = float(ema_fast[-1]), float(ema_slow[-1]), float(atr[-1])
@@ -71,7 +73,7 @@ def classify(
     s2 = 1 if ef > es else -1
     slope = float(ema_slow[-1] - ema_slow[-1 - ema_slope_bars])
     s3 = 1 if slope > ema_slope_atr * a else (-1 if slope < -ema_slope_atr * a else 0)
-    s4, s4_text = _structure(highs, lows)
+    s4, s4_text = structure if structure is not None else _structure(highs, lows)
     score = s1 + s2 + s3 + s4
     if score >= strong_threshold:
         d = 2

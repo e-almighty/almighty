@@ -5,6 +5,8 @@
   python run_4h.py --csv data/USDJPY_4H.csv --daily data/USDJPY_1D.csv
   python run_4h.py --gmo                                           # GMOコイン公開APIから直接（SHOのPCで）
   python run_4h.py --sample                                        # 動作確認用の架空データ
+  python run_4h.py --csv ... --slot morning                          # 10:05 朝のプラン（--slot evening で 20:05 中間報告、省略時は時刻で自動）
+  python run_4h.py --csv ... --now "2026-10-03 20:05"                # 実行時刻を指定（確定足の判定に使う。テスト用）
 
 X への投稿はしない（DRY RUN）。投稿案は output/*.md に書き出すだけ。
 """
@@ -29,6 +31,10 @@ def main() -> int:
     ap.add_argument("--sample", action="store_true", help="架空データで動作確認")
     ap.add_argument("--config", default=str(HERE / "config" / "analysis.yaml"))
     ap.add_argument("--out", default=str(HERE / "output"))
+    ap.add_argument("--slot", choices=["morning", "evening", "auto"], default="auto",
+                    help="morning=朝のプラン(10:05) / evening=中間報告(20:05) / auto=実行時刻で決める")
+    ap.add_argument("--now", help="実行時刻を指定（例 '2026-10-03 20:05'、JST）。省略時は現在時刻")
+    ap.add_argument("--no-ledger", action="store_true", help="前回結果（output/state）を読まない・書かない")
     args = ap.parse_args()
 
     cfg = pipeline.load_config(args.config)
@@ -53,16 +59,28 @@ def main() -> int:
     if args.daily:
         df_daily = market_data.load_csv(args.daily)
 
-    result = pipeline.run(df, cfg, args.out, "4h", df_daily)
+    now = None
+    if args.now:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        now = datetime.fromisoformat(args.now).replace(tzinfo=ZoneInfo(cfg.get("timezone", "Asia/Tokyo")))
+    slot = None if args.slot == "auto" else args.slot
+    result = pipeline.run(df, cfg, args.out, "4h", df_daily, now=now, slot=slot,
+                          use_ledger=(False if args.no_ledger else None))
     print("=== 解説 ===")
     print(result["commentary"]["long"])
+    print()
+    print("=== シナリオ表 ===")
+    print(result["commentary"]["table"])
     print()
     print("=== 根拠 ===")
     for e in result["commentary"].get("evidence", []):
         print("-", e)
     print()
-    print("=== X投稿案（未投稿） ===")
+    print(f"=== X投稿案（未投稿・{result['commentary']['x_units']} 単位） ===")
     print(result["commentary"]["post"])
+    if result["commentary"].get("safety_hits"):
+        print("（表現チェックで置き換えた語：", ", ".join(result["commentary"]["safety_hits"]), "）")
     print()
     print("保存先:")
     for k, v in result["files"].items():

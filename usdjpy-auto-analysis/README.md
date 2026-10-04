@@ -6,7 +6,7 @@ tags:
   - USDJPY
   - 自動分析
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # USDJPY 自動分析 — 動かし方
@@ -23,12 +23,16 @@ updated: 2026-10-03
 
 ```
 python run_4h.py --sample                                             # 架空データで動作確認
-python run_4h.py --csv data/USDJPY_4H.csv --daily data/USDJPY_1D.csv  # TradingView から書き出した CSV
+python run_4h.py --csv data/USDJPY_4H.csv --daily data/USDJPY_1D.csv  # TradingView から書き出した CSV（実行時刻で朝／中間を自動判定）
+python run_4h.py --csv data/USDJPY_4H.csv --daily data/USDJPY_1D.csv --slot morning   # 10:05 朝のプラン
+python run_4h.py --csv data/USDJPY_4H.csv --daily data/USDJPY_1D.csv --slot evening   # 20:05 中間報告
+python run_4h.py --csv ... --now "2026-10-02 20:05"                   # 実行時刻を指定（確定足の判定に使う。過去の時点を再現）
 python run_4h.py --gmo                                                # GMOコイン公開APIから直接（無料・キー不要）
-python tests/test_pipeline.py                                         # テスト
+python -m pytest tests -q                                             # テスト（pip install pytest）
 ```
 
-結果は `output/` に 3 つ出る：`USDJPY_4h_YYYYMMDD_HHMM.png`（画像）、`.md`（解説と X 投稿案）、`.json`（数値）。
+結果は `output/` に 3 つ出る：`USDJPY_4h_YYYYMMDD_HHMM.png`（画像）、`.md`（解説・シナリオ表・根拠・X 投稿案）、`.json`（数値）。
+前回の結果は `output/state/last_result.json` と `output/ledger.csv` に残り、次回の「変化点」「前回の注目帯への反応」に使う（`--no-ledger` で無効）。
 **X への投稿はしない（DRY RUN）。** 投稿部分は STEP 7 で X速報bot から流用して足す。
 
 ## CSV の形
@@ -38,7 +42,7 @@ TradingView MCP の `mcp-tv-get-ohlcv` の出力をそのまま：列 `t,o,h,l,c
 
 ## 設定
 
-`config/analysis.yaml`。Pivot の左右本数・ATR 期間・サポレジのまとめ幅・ライン本数・EMA 期間・トレンドラインの許容幅・画像サイズ。コードに数字を埋め込まない。
+`config/analysis.yaml`。Pivot の左右本数・ATR 期間・サポレジのまとめ幅・ライン本数・EMA 期間・トレンドラインの許容幅・画像サイズ、第2ステージの `tolerances`（判定幅）・`fibonacci`・`divergence`・`sqzmom`・`zones`（根拠の重み）・`posting`（X の文字数・ハッシュタグ）・`chart.draw_*`（描く／描かない）。コードに数字を埋め込まない。
 
 ## 構成
 
@@ -50,6 +54,15 @@ TradingView MCP の `mcp-tv-get-ohlcv` の出力をそのまま：列 `t,o,h,l,c
 | `src/usdjpy_analysis/levels.py` | サポレジ候補のクラスタリング・反応回数・重要度・間引き |
 | `src/usdjpy_analysis/trend.py` | 相場環境の 5 分類（スコア方式） |
 | `src/usdjpy_analysis/trendlines.py` | 上昇・下降トレンドライン候補（2 点＋3 点目確認・ブレイク判定） |
+| `src/usdjpy_analysis/channels.py` | 平行チャネル（上限・中央・下限） |
+| `src/usdjpy_analysis/bars.py` | 確定足の一元管理、前日・前週・今週の高安、日足 ATR／EMA |
+| `src/usdjpy_analysis/structure.py` | 主要スイングの選別、ダウ理論の状態機械（押し安値・戻り高値） |
+| `src/usdjpy_analysis/fibonacci.py` | フィボナッチ・リトレースメント／エクステンション |
+| `src/usdjpy_analysis/divergence.py` | RSI ダイバージェンス（通常・隠れ） |
+| `src/usdjpy_analysis/momentum.py` | SQZMOM の文章、RSI の現在値、ATR の文脈（pips・分位） |
+| `src/usdjpy_analysis/zones.py` | 注目価格帯（根拠の重なりをまとめて格付け） |
+| `src/usdjpy_analysis/safety.py` | 表現の安全弁（断定語の検出・置換、免責） |
+| `src/usdjpy_analysis/ledger.py` | 前回結果の保存と「変化点」「前回の線への反応」 |
 | `src/usdjpy_analysis/chart.py` | 投稿用 PNG（mplfinance） |
 | `src/usdjpy_analysis/commentary.py` | 日本語解説と X 投稿案（ルールベース。AI で磨くのは後） |
 | `src/usdjpy_analysis/pipeline.py` | 上を順につなぐ。`analyze()` と `run()` |

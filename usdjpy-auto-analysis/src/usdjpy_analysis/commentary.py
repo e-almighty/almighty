@@ -1,22 +1,117 @@
-"""日本語の解説文（ルールベース）。
+"""日本語の解説文（ルールベース）。第2ステージ版。
 
-docs/ANALYSIS_RULES.md「解説文」に従う:
-  現在値 → 相場環境（EMA 3 本の並び）→ 日足の大局 → サポート → レジスタンス → チャネル
-  → 上方向シナリオ → 下方向シナリオ → 注目価格帯 → 根拠（線 1 本ごとに「なぜそこか」）
-  断定表現（必ず・絶対）は使わない。「〜に注目」「〜が焦点」「〜の可能性」で書く。
-
-AI（Claude API）で文章を磨く段階は後回し。まずは数値から機械的に組み立てる。
+順番（docs/ANALYSIS_RULES.md「解説文」）:
+  現在値と確定足 → （朝）前日の総括／（中間）朝からの変化点と前回の線への反応
+  → 相場環境（EMA 3 本・点数）＋ただし書き → ダウ理論の構造（押し安値） → 日足の大局（前日・前週）
+  → サポート・レジスタンス → チャネル → フィボナッチ → RSI とダイバージェンス → SQZMOM（1 行）
+  → 値幅の目安（ATR） → 注目価格帯（上 2・下 2、根拠の重なり） → シナリオ（メイン／サブ） → 免責
+断定表現（必ず・絶対）は使わない。最後に safety.sanitize で機械チェックする。
 """
 from __future__ import annotations
+
+from . import safety
+
+ENV_TEXT = {
+    "強い上昇": "上昇基調がはっきりしています",
+    "弱い上昇": "上昇基調ですが、上値はやや重い状態です",
+    "レンジ": "方向感の乏しいレンジ相場です",
+    "弱い下落": "下落基調ですが、下値はやや堅い状態です",
+    "強い下落": "下落基調がはっきりしています",
+}
+ARROW = {"強い上昇": "↑↑", "弱い上昇": "↑", "レンジ": "→", "弱い下落": "↓", "強い下落": "↓↓"}
 
 
 def _fmt(p: float) -> str:
     return f"{p:.3f}"
 
 
-def _nearest(levels: list[dict]) -> dict | None:
-    return levels[0] if levels else None
+def _zone_name(z: dict) -> str:
+    return f"{_fmt(z['low'])}〜{_fmt(z['high'])}" if z["high"] - z["low"] >= 0.01 else _fmt(z["center"])
 
+
+def _zone_kinds(z: dict, limit: int = 3) -> str:
+    return "＋".join(z["kinds"][:limit])
+
+
+# ---------------------------------------------------------------- シナリオ
+
+def scenarios(result: dict) -> dict:
+    close = result["close"]
+    za, zb = result["zones"]["above"], result["zones"]["below"]
+    res, sup = result["resistances"], result["supports"]
+    st = result.get("structure") or {}
+    fib = result.get("fibonacci")
+    d = result["trend"].get("direction_effective", result["trend"]["direction"])
+
+    def first_above(skip: float | None = None):
+        for z in za:
+            if skip is None or z["center"] > skip + 1e-9:
+                return ("注目帯：" + _zone_kinds(z, 2), z["center"], z)
+        for r in res:
+            if skip is None or r["price"] > skip + 1e-9:
+                return ("レジスタンス", r["price"], None)
+        return None
+
+    def first_below(skip: float | None = None):
+        for z in zb:
+            if skip is None or z["center"] < skip - 1e-9:
+                return ("注目帯：" + _zone_kinds(z, 2), z["center"], z)
+        for s in sup:
+            if skip is None or s["price"] < skip - 1e-9:
+                return ("サポート", s["price"], None)
+        return None
+
+    up = {"trigger": None, "target": None, "invalid": None}
+    t = first_above()
+    if t:
+        up["trigger"] = {"name": t[0], "price": t[1]}
+        nxt = first_above(t[1])
+        if nxt is None and fib and fib["direction"] == "up":
+            ext = fib["extensions"].get("1.0")
+            if ext and ext > t[1]:
+                nxt = ("フィボ目標 100%", ext, None)
+        up["target"] = {"name": nxt[0], "price": nxt[1]} if nxt else None
+    if st.get("direction") == "up" and st.get("key_level"):
+        up["invalid"] = {"name": "押し安値", "price": st["key_level"]}
+    else:
+        b = first_below()
+        up["invalid"] = {"name": b[0], "price": b[1]} if b else None
+
+    dn = {"trigger": None, "target": None, "invalid": None}
+    b = first_below()
+    if b:
+        dn["trigger"] = {"name": b[0], "price": b[1]}
+        nxt = first_below(b[1])
+        if nxt is None and fib and fib["direction"] == "down":
+            ext = fib["extensions"].get("1.0")
+            if ext and ext < b[1]:
+                nxt = ("フィボ目標 100%", ext, None)
+        dn["target"] = {"name": nxt[0], "price": nxt[1]} if nxt else None
+    if st.get("direction") == "down" and st.get("key_level"):
+        dn["invalid"] = {"name": "戻り高値", "price": st["key_level"]}
+    else:
+        a = first_above()
+        dn["invalid"] = {"name": a[0], "price": a[1]} if a else None
+
+    main = "up" if d > 0 else ("down" if d < 0 else None)
+
+    def text(s: dict, side: str) -> str:
+        if not s["trigger"]:
+            return "目安になる価格帯がありません"
+        verb = "上抜け" if side == "up" else "割り込み"
+        out = f"{_fmt(s['trigger']['price'])}（{s['trigger']['name']}）を終値で{verb}"
+        out += f" → {_fmt(s['target']['price'])}（{s['target']['name']}）へ" if s["target"] else " → 値幅の余地が広がる"
+        if s["invalid"]:
+            iv = "割れ" if side == "up" else "超え"
+            out += f"。崩れる条件：{_fmt(s['invalid']['price'])}（{s['invalid']['name']}）を終値で{iv}"
+        return out
+
+    up["text"], dn["text"] = text(up, "up"), text(dn, "down")
+    main_text = up["text"] if main == "up" else (dn["text"] if main == "down" else "レンジ：上下の注目帯の間での往来を基本に、どちらかを終値で抜けた方向を見る")
+    return {"up": up, "down": dn, "main": main, "main_text": main_text}
+
+
+# ---------------------------------------------------------------- 本文の各段落
 
 def _ema_paragraph(result: dict) -> str:
     d = result["trend"]["details"]
@@ -26,7 +121,7 @@ def _ema_paragraph(result: dict) -> str:
     l = d.get("ema_long")
     pl = result.get("ema_long_period")
     if l is None or not pl:
-        return (f"終値は EMA{ps}（{_fmt(s)}）の{d['close_vs_ema_slow']}、EMA{ps} は{d['ema_slow_slope']}。")
+        return f"終値は EMA{ps}（{_fmt(s)}）の{d['close_vs_ema_slow']}、EMA{ps} は{d['ema_slow_slope']}。"
     above_all = close > f and close > s and close > l
     below_all = close < f and close < s and close < l
     if f > s > l and above_all:
@@ -34,12 +129,86 @@ def _ema_paragraph(result: dict) -> str:
     elif f < s < l and below_all:
         order = f"EMA{pf}＜EMA{ps}＜EMA{pl} の順に並び、現在値はその下にあります（下落のパーフェクトオーダー）"
     else:
-        pos = []
-        for name, v in ((f"EMA{pf}", f), (f"EMA{ps}", s), (f"EMA{pl}", l)):
-            pos.append(f"{name}（{_fmt(v)}）の{'上' if close > v else '下'}")
+        pos = [f"{name}（{_fmt(v)}）の{'上' if close > v else '下'}" for name, v in ((f"EMA{pf}", f), (f"EMA{ps}", s), (f"EMA{pl}", l))]
         order = "現在値は " + "、".join(pos) + " にあり、3 本の並びはそろっていません"
     return (f"移動平均は {order}。EMA{ps} は{d['ema_slow_slope']}。"
             f"EMA{pl}（{_fmt(l)}）は長期の目安で、現在値はその{d.get('close_vs_ema_long', '')}です。")
+
+
+def _structure_paragraph(result: dict) -> str:
+    st = result.get("structure") or {}
+    if not st or st.get("direction") is None:
+        return ""
+    t = f"ダウ理論（主要な高値・安値、振幅 ATR×2 以上の波だけで見る）：状態は「{st['state']}」。"
+    if st.get("key_level") is not None:
+        if st["direction"] == "up":
+            t += (f"更新対象の高値は {_fmt(st['top_price'])}（{st.get('top_jst')}）、押し安値は {_fmt(st['key_level'])}（{st.get('key_jst')} の安値）で、"
+                  f"終値でここを割らない限り上昇の構造は保たれます。")
+        else:
+            t += (f"更新対象の安値は {_fmt(st['top_price'])}（{st.get('top_jst')}）、戻り高値は {_fmt(st['key_level'])}（{st.get('key_jst')} の高値）で、"
+                  f"終値でここを越えない限り下降の構造は保たれます。")
+        if st.get("wick_breaks"):
+            w = min(st["wick_breaks"]) if st["direction"] == "up" else max(st["wick_breaks"])
+            t += f"ヒゲでは {_fmt(w)} まで{'割り込む' if st['direction'] == 'up' else '上抜ける'}場面がありましたが、終値では維持されています。"
+        if st.get("flipped_jst"):
+            t += f"直近の転換は {st['flipped_jst']}（{st.get('flipped_note')}）。"
+    elif st.get("note"):
+        t += st["note"] + "。"
+    return t
+
+
+def _daily_paragraph(result: dict) -> str:
+    dl = result.get("daily")
+    if not dl:
+        return ""
+    close = result["close"]
+    parts = []
+    de = dl.get("daily_ema")
+    if de:
+        datr = dl.get("daily_atr") or 0.0
+        gap = de["close"] - de["value"]
+        if datr and abs(gap) < datr * 0.15:
+            parts.append(f"日足では、前日（{de['date']}）終値 {_fmt(de['close'])} が日足EMA{de['period']}（{_fmt(de['value'])}）とほぼ重なっており"
+                         f"（差 {gap / result.get('pip', 0.01):+.0f} pips）、大局の方向は決め手を欠きます。")
+        else:
+            parts.append(f"日足では、前日（{de['date']}）終値 {_fmt(de['close'])} が日足EMA{de['period']}（{_fmt(de['value'])}）の"
+                         f"{'上' if de['above'] else '下'}にあり、大局は{'上方向' if de['above'] else '下方向'}優位です。")
+    pdv = dl.get("prev_day")
+    if pdv:
+        if pdv["low"] <= close <= pdv["high"]:
+            where = f"前日高値 {_fmt(pdv['high'])} と前日安値 {_fmt(pdv['low'])} の間"
+        elif close > pdv["high"]:
+            where = f"前日高値 {_fmt(pdv['high'])} の上"
+        else:
+            where = f"前日安値 {_fmt(pdv['low'])} の下"
+        parts.append(f"現在値は{where}。")
+    pw = dl.get("prev_week")
+    if pw:
+        parts.append(f"前週（{pw['label']}）の高値 {_fmt(pw['high'])}・安値 {_fmt(pw['low'])}。")
+    tw = dl.get("this_week")
+    if tw:
+        parts.append(f"今週ここまでの高値 {_fmt(tw['high'])}・安値 {_fmt(tw['low'])}。")
+    return "".join(parts)
+
+
+def _prev_day_summary(result: dict) -> str:
+    dl = result.get("daily")
+    if not dl or not dl.get("prev_day"):
+        return ""
+    p = dl["prev_day"]
+    pip = result.get("pip", 0.01)
+    body = p["close"] - p["open"]
+    kind = "陽線" if body > 0 else ("陰線" if body < 0 else "十字線")
+    rng = (p["high"] - p["low"]) / pip
+    upper = (p["high"] - max(p["open"], p["close"])) / pip
+    lower = (min(p["open"], p["close"]) - p["low"]) / pip
+    shape = ""
+    if rng > 0 and upper / rng > 0.45:
+        shape = "。上ヒゲが長く、上値で売りに押された形"
+    elif rng > 0 and lower / rng > 0.45:
+        shape = "。下ヒゲが長く、下値で買いが入った形"
+    return (f"前日（{p['label']}）は始値 {_fmt(p['open'])} → 終値 {_fmt(p['close'])} の{kind}（値幅 {rng:.0f} pips、"
+            f"高値 {_fmt(p['high'])}・安値 {_fmt(p['low'])}）{shape}。")
 
 
 def _channel_paragraph(ch: dict | None) -> str:
@@ -54,72 +223,173 @@ def _channel_paragraph(ch: dict | None) -> str:
     return text
 
 
-def build(result: dict) -> dict:
-    sym = result["symbol"]
-    tf = result["timeframe_label"]
-    close = result["close"]
-    trend = result["trend"]
-    sup = result["supports"]
-    res = result["resistances"]
-    s1 = _nearest(sup)
-    r1 = _nearest(res)
+def _fib_paragraph(result: dict) -> str:
+    fib = result.get("fibonacci")
+    if not fib:
+        return "フィボナッチ：基準にできる大きさの波（ATR×3 以上）が主要スイングに無いため、今回は引いていません。"
+    if fib["direction"] == "up":
+        base = (f"フィボナッチは {fib['start_jst']} の安値 {_fmt(fib['start_price'])} → {fib['end_jst']} の高値 {_fmt(fib['end_price'])}"
+                f"（{fib['wave_pips']:.0f} pips の上昇波）を基準にしています。")
+    else:
+        base = (f"フィボナッチは {fib['start_jst']} の高値 {_fmt(fib['start_price'])} → {fib['end_jst']} の安値 {_fmt(fib['end_price'])}"
+                f"（{abs(fib['wave_pips']):.0f} pips の下降波）を基準にしています。")
+    lv = fib["levels"]
+    main = "、".join(f"{float(k) * 100:.1f}%＝{_fmt(v)}" for k, v in lv.items() if float(k) in (0.382, 0.5, 0.618))
+    t = base + f"押し目（戻り）の目安は {main}。"
+    if fib.get("current_band"):
+        t += f"現在値は{fib['current_band']}の位置です。"
+    # 他の根拠との重なり（注目価格帯の中身から拾う）
+    overlaps = []
+    for z in result["zones"]["above"] + result["zones"]["below"]:
+        if "フィボナッチ" in z["kinds"] and len(z["kinds"]) >= 2:
+            fl = [r.split("：", 1)[1] for r in z["reasons"] if r.startswith("フィボナッチ：")]
+            others = [k for k in z["kinds"] if k != "フィボナッチ"]
+            if fl:
+                overlaps.append(f"{fl[0].split(' ')[0]} の {fl[0].split(' ')[-1]} は {'・'.join(others[:3])} と重なります")
+    if overlaps:
+        t += "根拠の重なり：" + "。".join(overlaps[:3]) + "。"
+    ext = fib.get("extensions") or {}
+    if ext:
+        t += "高値（安値）を更新した後の目標は " + "、".join(f"{float(k) * 100:.1f}%＝{_fmt(v)}" for k, v in ext.items()) + "。"
+    return t
+
+
+def _rsi_paragraph(result: dict) -> str:
+    r = result.get("rsi")
+    if not r:
+        return ""
+    t = f"RSI(14) は {r['value']:.1f}（{r['zone']}、{r['slope']}）。"
+    divs = result.get("divergences") or []
+    if divs:
+        for d in divs:
+            kind = "高値" if d["kind"] in ("bearish", "hidden_bearish") else "安値"
+            t += (f"{d['label']}：{d['t1_jst']} の{kind} {_fmt(d['p1'])}（RSI {d['r1']:.1f}）→ {d['t2_jst']} の{kind} {_fmt(d['p2'])}"
+                  f"（RSI {d['r2']:.1f}）。{d['meaning']}。")
+        t += "ダイバージェンスは「反転」ではなく「勢いの変化」のサインとして扱い、構造の崩れと合わさって初めて転換の根拠にします。"
+    else:
+        t += "直近の確定スイングで RSI のダイバージェンスは検出されていません。"
+    return t
+
+
+def _zones_paragraph(result: dict) -> tuple[str, list[str]]:
+    za, zb = result["zones"]["above"], result["zones"]["below"]
+    lines = []
+    ev = []
+    if za:
+        s = "上の注目価格帯：" + "　".join(
+            f"{'①②'[i]} {_zone_name(z)}（{z['distance_text']}・{z['distance_pips']:.0f} pips）＝{_zone_kinds(z)}" for i, z in enumerate(za[:2]))
+        lines.append(s)
+    if zb:
+        s = "下の注目価格帯：" + "　".join(
+            f"{'①②'[i]} {_zone_name(z)}（{z['distance_text']}・{z['distance_pips']:.0f} pips）＝{_zone_kinds(z)}" for i, z in enumerate(zb[:2]))
+        lines.append(s)
+    for side, zs in (("上", za), ("下", zb)):
+        for i, z in enumerate(zs[:2]):
+            ev.append(f"{side}の注目価格帯{'①②'[i]} {_zone_name(z)}（得点 {z['score']:.1f}）：" + "／".join(z["reasons"][:5]))
+    return "\n".join(lines), ev
+
+
+# ---------------------------------------------------------------- まとめ
+
+def _x_units(s: str) -> int:
+    return sum(1 if ord(ch) < 128 else 2 for ch in s)
+
+
+def _fit_post(lines: list[str], max_units: int, keep_last: int = 1) -> str:
+    body = list(lines)
+    while _x_units("\n".join(body)) > max_units and len(body) > keep_last + 2:
+        del body[-1 - keep_last]
+    return "\n".join(body)
+
+
+def build(result: dict, posting: dict | None = None) -> dict:
+    posting = posting or {}
+    sym, tf, close = result["symbol"], result["timeframe_label"], result["close"]
+    tr = result["trend"]
+    label = tr.get("label_effective", tr["label"])
+    sup, res = result["supports"], result["resistances"]
     ch = result.get("channel")
-    htf = result.get("higher_timeframe")
+    slot = result.get("slot", "morning")
+    slot_label = "朝のプラン" if slot == "morning" else "中間報告"
+    conf = result.get("confirmed") or {}
+    chg = result.get("changes") or {}
+    sc = result.get("scenarios") or scenarios(result)
 
     lines: list[str] = []
-    lines.append(f"{sym} {tf}。現在値は {_fmt(close)} 円付近。")
+    head = f"{sym} {tf}（{slot_label}）。現在値 {_fmt(close)} 円。"
+    if conf:
+        head += f"判定は {conf['last_start_jst']} 始まりの足（{conf['last_end_jst']} 確定）までの確定足に基づきます。"
+    lines.append(head)
 
-    env = {
-        "強い上昇": "上昇基調がはっきりしています",
-        "弱い上昇": "上昇基調ですが、上値はやや重い状態です",
-        "レンジ": "方向感の乏しいレンジ相場です",
-        "弱い下落": "下落基調ですが、下値はやや堅い状態です",
-        "強い下落": "下落基調がはっきりしています",
-    }[trend["label"]]
-    lines.append(f"相場環境は「{trend['label']}」。{env}。{trend['details']['structure']}。")
-    lines.append(_ema_paragraph(result))
-
-    if htf:
-        lines.append(f"日足では、前日終値（{_fmt(htf['close'])}）が日足EMA{htf['ema_period']}（{_fmt(htf['ema'])}）の"
-                     f"{'上' if htf['above'] else '下'}にあり、大局は{'上方向' if htf['above'] else '下方向'}優位です。")
-
-    if sup:
-        lines.append("サポートは " + "、".join(f"{_fmt(l['price'])}円" for l in sup) + "。")
+    # 朝：前日の総括／中間：変化点と前回の線への反応
+    if slot == "morning":
+        pdsum = _prev_day_summary(result)
+        if pdsum:
+            lines.append("■ 前日の総括　" + pdsum)
+        if chg.get("available") and chg.get("reactions"):
+            lines.append("■ 前回の注目帯への反応　" + "／".join(chg["reactions"]))
     else:
-        lines.append("表示範囲に明確なサポート候補はありません。")
-    if res:
-        lines.append("レジスタンスは " + "、".join(f"{_fmt(l['price'])}円" for l in res) + "。")
+        if chg.get("available"):
+            body = "／".join(chg.get("lines", [])) or "大きな変化はありません。"
+            lines.append("■ 前回からの変化点　" + body)
+            if chg.get("reactions"):
+                lines.append("■ 前回の注目帯への反応　" + "／".join(chg["reactions"]))
+        tdy = (result.get("daily") or {}).get("today")
+        if tdy:
+            lines.append(f"■ 本日ここまで　高値 {_fmt(tdy['high'])}・安値 {_fmt(tdy['low'])}・直近 {_fmt(tdy['close'])}。")
+
+    # 相場環境
+    env = f"■ 相場環境　「{label}」。{ENV_TEXT[label]}。"
+    if tr.get("label_effective") and tr["label_effective"] != tr["label"]:
+        env += f"（点数だけなら「{tr['label']}」ですが、下の理由で一段弱めています）"
+    env += tr["details"]["structure"] + "。" + _ema_paragraph(result)
+    if tr.get("caveat"):
+        env += tr["caveat"]
+    lines.append(env)
+
+    stp = _structure_paragraph(result)
+    if stp:
+        lines.append("■ 構造　" + stp)
+    dp = _daily_paragraph(result)
+    if dp:
+        lines.append("■ 日足の大局　" + dp)
+
+    sr = ("サポートは " + "、".join(f"{_fmt(l['price'])}円" for l in sup) + "。") if sup else "表示範囲に明確なサポート候補はありません。"
+    sr += ("レジスタンスは " + "、".join(f"{_fmt(l['price'])}円" for l in res) + "。") if res else "表示範囲に明確なレジスタンス候補はありません。"
+    lines.append("■ サポート・レジスタンス　" + sr)
+    lines.append("■ チャネル　" + _channel_paragraph(ch))
+    lines.append("■ フィボナッチ　" + _fib_paragraph(result))
+    rp = _rsi_paragraph(result)
+    if rp:
+        lines.append("■ RSI　" + rp)
+    if result.get("sqzmom"):
+        lines.append("■ " + result["sqzmom"]["text"])
+    if result.get("atr_context"):
+        from .momentum import atr_text
+        lines.append("■ " + atr_text(result["atr_context"]))
+    zp, zone_ev = _zones_paragraph(result)
+    if zp:
+        lines.append("■ 注目価格帯（根拠が重なる所）\n" + zp)
+
+    main = sc.get("main")
+    if main == "up":
+        lines.append(f"■ シナリオ　メイン（上方向）：{sc['up']['text']}。\nサブ（下方向）：{sc['down']['text']}。")
+    elif main == "down":
+        lines.append(f"■ シナリオ　メイン（下方向）：{sc['down']['text']}。\nサブ（上方向）：{sc['up']['text']}。")
     else:
-        lines.append("表示範囲に明確なレジスタンス候補はありません。")
-
-    lines.append(_channel_paragraph(ch))
-
-    # シナリオ（サポレジとチャネルのうち、現在値に近い方を目先の目安にする）
-    up_candidates = [("レジスタンス", r1["price"]) for _ in [0] if r1]
-    dn_candidates = [("サポート", s1["price"]) for _ in [0] if s1]
-    if ch:
-        if ch["upper_now"] > close:
-            up_candidates.append(("チャネル上限", ch["upper_now"]))
-        if ch["lower_now"] < close:
-            dn_candidates.append(("チャネル下限", ch["lower_now"]))
-    if up_candidates:
-        nm, p = min(up_candidates, key=lambda t: t[1])
-        nxt = res[1]["price"] if (len(res) > 1 and nm == "レジスタンス") else (r1["price"] if (r1 and nm != "レジスタンス" and r1["price"] > p) else None)
-        lines.append(f"上方向：目先は{nm} {_fmt(p)}円。終値で上抜けると" + (f"、次は {_fmt(nxt)}円が視野に入ります。" if nxt else "、上値余地が広がります。"))
-    if dn_candidates:
-        nm, p = max(dn_candidates, key=lambda t: t[1])
-        nxt = sup[1]["price"] if (len(sup) > 1 and nm == "サポート") else (s1["price"] if (s1 and nm != "サポート" and s1["price"] < p) else None)
-        lines.append(f"下方向：目先は{nm} {_fmt(p)}円。終値で割り込むと" + (f"、次は {_fmt(nxt)}円が意識されます。" if nxt else "、下値を探る展開に注意です。"))
-
-    focus = []
-    if r1:
-        focus.append(f"{_fmt(r1['price'])}円")
-    if s1:
-        focus.append(f"{_fmt(s1['price'])}円")
-    if focus:
-        lines.append("次に注目する価格帯は " + " と ".join(focus) + " です。")
-
+        lines.append(f"■ シナリオ　{sc['main_text']}。\n上方向：{sc['up']['text']}。\n下方向：{sc['down']['text']}。")
+    lines.append(safety.DISCLAIMER)
     long_text = "\n".join(lines)
+
+    # シナリオ表（markdown）
+    def row(name: str, s: dict) -> str:
+        trg = f"{_fmt(s['trigger']['price'])} を終値で{'上抜け' if name.startswith('上') else '割り込み'}（{s['trigger']['name']}）" if s.get("trigger") else "—"
+        tgt = f"{_fmt(s['target']['price'])}（{s['target']['name']}）" if s.get("target") else "—"
+        inv = f"{_fmt(s['invalid']['price'])}（{s['invalid']['name']}）" if s.get("invalid") else "—"
+        return f"| {name} | {trg} | {tgt} | {inv} |"
+    tag_up = "上方向（メイン）" if main == "up" else "上方向"
+    tag_dn = "下方向（メイン）" if main == "down" else "下方向"
+    table = "| シナリオ | 発動条件 | 行き先 | 崩れる条件 |\n|---|---|---|---|\n" + row(tag_up, sc["up"]) + "\n" + row(tag_dn, sc["down"])
 
     # 根拠（線 1 本ごと）
     ev: list[str] = []
@@ -132,29 +402,50 @@ def build(result: dict) -> dict:
     if ch:
         if ch["kind"] == "up":
             ev.append(f"上昇チャネル：下限線は {ch['t1_jst']} と {ch['t2_jst']} の安値を結んだ線（接触 {ch['touches_base']} 回）。"
-                      f"上限線はそれと平行で、{ch['far_jst']} の高値 {_fmt(ch['far_price'])} を通る（接触 {ch['touches_far']} 回）。"
-                      f"中央線は上限と下限の中間")
+                      f"上限線はそれと平行で、{ch['far_jst']} の高値 {_fmt(ch['far_price'])} を通る（接触 {ch['touches_far']} 回）。中央線は上限と下限の中間")
         else:
             ev.append(f"下降チャネル：上限線は {ch['t1_jst']} と {ch['t2_jst']} の高値を結んだ線（接触 {ch['touches_base']} 回）。"
-                      f"下限線はそれと平行で、{ch['far_jst']} の安値 {_fmt(ch['far_price'])} を通る（接触 {ch['touches_far']} 回）。"
-                      f"中央線は上限と下限の中間")
-    d = trend["details"]
-    ev.append(f"相場環境「{trend['label']}」：終値と EMA{result['ema_slow_period']} の位置（{d['close_vs_ema_slow']}）、"
+                      f"下限線はそれと平行で、{ch['far_jst']} の安値 {_fmt(ch['far_price'])} を通る（接触 {ch['touches_far']} 回）。中央線は上限と下限の中間")
+    st = result.get("structure") or {}
+    if st.get("key_level") is not None:
+        nm = "押し安値" if st["direction"] == "up" else "戻り高値"
+        ev.append(f"{nm} {_fmt(st['key_level'])}：直近の主要{'高値' if st['direction'] == 'up' else '安値'}の直前にある主要"
+                  f"{'安値' if st['direction'] == 'up' else '高値'}（{st.get('key_jst')}）。ダウ理論で構造が崩れるかどうかを決める唯一の価格")
+    fib = result.get("fibonacci")
+    if fib:
+        ev.append(f"フィボナッチ：主要スイングの最後の推進波 {_fmt(fib['start_price'])}（{fib['start_jst']}）→ {_fmt(fib['end_price'])}（{fib['end_jst']}）"
+                  f"を 0〜100% とし、38.2／50／61.8% を押し目（戻り）の目安として描画。23.6／78.6% は文章のみ")
+    for d in result.get("divergences") or []:
+        ev.append(f"{d['label']}：価格 {_fmt(d['p1'])}→{_fmt(d['p2'])}、RSI {d['r1']:.1f}→{d['r2']:.1f}（{d['t1_jst']}→{d['t2_jst']}）。"
+                  f"価格差が ATR×0.3 以上・RSI 差が 3 以上・2 つ目のピボットが直近 20 本以内の条件を満たす")
+    d = tr["details"]
+    ev.append(f"相場環境「{tr['label']}」：終値と EMA{result['ema_slow_period']} の位置（{d['close_vs_ema_slow']}）、"
               f"EMA{result['ema_fast_period']} と EMA{result['ema_slow_period']} の位置（{d['ema_fast_vs_slow']}）、"
-              f"EMA{result['ema_slow_period']} の傾き（{d['ema_slow_slope']}）、高値安値の切り上げ・切り下げ（{d['structure']}）の 4 点を点数化（合計 {trend['score']:+d}）")
+              f"EMA{result['ema_slow_period']} の傾き（{d['ema_slow_slope']}）、主要な高値安値の切り上げ・切り下げ（{d['structure']}）の 4 点を点数化（合計 {tr['score']:+d}）"
+              + (f"。ダウ理論の構造と食い違うため表示は「{label}」に一段弱めた" if label != tr["label"] else ""))
+    ev.extend(zone_ev)
+    dl = result.get("daily") or {}
+    if dl.get("prev_day"):
+        p = dl["prev_day"]
+        ev.append(f"前日高値 {_fmt(p['high'])}・前日安値 {_fmt(p['low'])}（{p['label']} の日足。確定した最後の日足から機械的に決まる水準）")
 
-    # X 投稿用の短文（全角 ≒ 140 文字以内が目安）
-    arrow = {"強い上昇": "↑↑", "弱い上昇": "↑", "レンジ": "→", "弱い下落": "↓", "強い下落": "↓↓"}[trend["label"]]
-    post = [f"📊 {sym} {tf} {arrow} {trend['label']}", f"現在 {_fmt(close)}"]
-    if r1:
-        post.append(f"R {_fmt(r1['price'])}" + (f" / {_fmt(res[1]['price'])}" if len(res) > 1 else ""))
-    if s1:
-        post.append(f"S {_fmt(s1['price'])}" + (f" / {_fmt(sup[1]['price'])}" if len(sup) > 1 else ""))
-    if ch:
-        post.append(("上昇CH" if ch["kind"] == "up" else "下降CH") + f" {_fmt(ch['lower_now'])}〜{_fmt(ch['upper_now'])}（{ch['position_text']}）")
-    if r1 and s1:
-        post.append(f"{_fmt(r1['price'])}超えで上値試し、{_fmt(s1['price'])}割れで調整に注意")
-    post.append("#USDJPY #ドル円 #テクニカル分析")
-    post_text = "\n".join(post)
+    # X 投稿用の短文（全角 2・半角 1 で x_max_units 以内）
+    za, zb = result["zones"]["above"], result["zones"]["below"]
+    post = [f"【{slot_label}】📊 {sym} {tf} {ARROW[label]} {label}", f"現在 {_fmt(close)}（{conf.get('last_end_jst', '')} 確定足まで）"]
+    if za:
+        post.append(f"上の注目帯 {_zone_name(za[0])}＝{_zone_kinds(za[0], 2)}")
+    if zb:
+        post.append(f"下の注目帯 {_zone_name(zb[0])}＝{_zone_kinds(zb[0], 2)}")
+    post.append("メイン：" + sc["main_text"].split("。崩れる条件")[0])
+    if st.get("key_level") is not None and st.get("direction") in ("up", "down"):
+        post.append(("押し安値 " if st["direction"] == "up" else "戻り高値 ") + _fmt(st["key_level"]) + " が構造の分かれ目")
+    post.append(str(posting.get("hashtags", "#USDJPY #ドル円 #テクニカル分析")))
+    post_text = _fit_post(post, int(posting.get("x_max_units", 280)))
 
-    return {"long": long_text, "evidence": ev, "post": post_text}
+    # 表現の安全弁
+    long_text, hits1 = safety.sanitize(long_text)
+    table, hits2 = safety.sanitize(table)
+    post_text, hits3 = safety.sanitize(post_text)
+    hits = sorted(set(hits1 + hits2 + hits3))
+    return {"long": long_text, "table": table, "evidence": ev, "post": post_text, "safety_hits": hits,
+            "x_units": _x_units(post_text)}

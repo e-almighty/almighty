@@ -7,9 +7,9 @@ tags:
   - 自動分析
   - X投稿
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 通貨ペア: USDJPY
-次の一手: SHOが初回画像の線の引き方を確認（STEP 3）。XのAPIキーの有無と投稿回数を決めてもらい、X投稿部分をDRY RUNで作る
+次の一手: SHOが第2ステージの4時間足（ダウ理論・フィボ・RSIダイバージェンス・注目価格帯・朝のプラン/中間報告）を確認。有名トレーダー手法の調査結果を解説に反映。X投稿部分（DRY RUN）を作る（APIキーはSHOが取得）
 ---
 
 # USDJPY 自動テクニカル分析・チャート投稿システム
@@ -19,19 +19,21 @@ updated: 2026-10-03
 
 依頼者：SHO ／ 引き継ぎメモ：2026-10-03 ／ 作業：Claude Code
 
-## 現在の状態（2026-10-03 夜・セーブ時点）
+## 現在の状態（2026-10-04・第2ステージ 4時間足を仕上げた時点）
 
 - **STEP 1 完了**：既存資産の棚卸しと TradingView 公式 MCP の確認 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/STEP1_報告_2026-10-03|STEP 1 報告]]
-- **STEP 2 完了**：4時間足について、データ読込 → スイング高安 → サポレジ → 相場環境 → トレンドライン → PNG → 日本語解説 まで動く。**本物のドル円データ（TradingView から書き出した CSV）で実行し、画像と解説を SHO に提示済み** → [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-03_初回|初回結果]]。X 投稿はしていない
-- **STEP 3（今ここ）**：SHO が「線の引き方が自分の考えと合っているか」を確認中。感想をもらったら `config/analysis.yaml` と [[03_PROJECTS/USDJPY_Auto_Analysis/docs/ANALYSIS_RULES|ANALYSIS_RULES]] を直す
-- **X 自動投稿**：SHO の希望は「毎日自動投稿」。進め方は [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X自動投稿の進め方|X自動投稿の進め方]]。SHO 待ち：X の API キーの有無、投稿回数（1日1回か4回か）
-- 今日の作業の詳細 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-03|作業ログ 2026-10-03]]
+- **STEP 2 完了**：4時間足のパイプライン（データ → スイング → サポレジ → 相場環境 → チャネル → PNG → 解説）。本物のドル円 CSV で実行し SHO に提示済み → [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-03_初回|初回結果]]
+- **STEP 3 進行中**：SHO ヒアリングで決まったこと（EMA 20/50/200・平行チャネル＋中央線・サポート赤／レジスタンス緑・フィボ必須・RSI ダイバージェンス・SQZMOM は文章のみ・1 日 2 回 10:05／20:05）を反映。**第2ステージ（2026-10-04）**：確定足の一元管理、主要スイングとダウ理論（押し安値）、フィボナッチ、RSI サブパネルとダイバージェンス、SQZMOM・ATR の文章、注目価格帯（根拠の重なり）、シナリオ表、朝のプラン／中間報告、台帳、表現の安全弁 → [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-04_第2ステージ_朝のプラン|第2ステージの出力例]]。ルールは [[03_PROJECTS/USDJPY_Auto_Analysis/docs/ANALYSIS_RULES|ANALYSIS_RULES]] 8〜15 節
+- **解析の追加提案**（4 視点の案出し → 査読 → 統合）→ [[03_PROJECTS/USDJPY_Auto_Analysis/docs/解析の追加提案_2026-10-04|解析の追加提案]]。A 群（すぐ入れる）は第2ステージで実装済み、B 群（ブレイク判定・ADX・EMA 乖離・レンジ処理・ローソク足パターン）と C 群（1H・5M・MTF・セッション・答え合わせの集計）は未着手
+- **有名トレーダーの手法調査**（小次郎講師・神藤さん・維新の介さん・石井信介さん・国内外）：調査中。まとまり次第 docs に保存し、解説の言い回しと判定に反映する
+- **X 自動投稿**：平日 10:05（朝のプラン）と 20:05（中間報告）の 1 日 2 回で決定。進め方は [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X自動投稿の進め方|X自動投稿の進め方]]。SHO は X の API キーをまだ持っていない（取得待ち）。投稿プログラムは DRY RUN から
+- 作業の詳細 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-03|作業ログ 2026-10-03]]／[[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-04|作業ログ 2026-10-04]]
 
 ## 役割分担（決定事項）
 
 | 時間足 | 役割 | 投稿 |
 |---|---|---|
-| 4時間足 | 定期の相場解説 | まず 1日1回 9:00 JST から（SHO 確認後）。将来 09/13/17/21 |
+| 4時間足 | 定期の相場解説 | **平日 10:05（朝のプラン）と 20:05（中間報告）の 1 日 2 回**（SHO 決定 2026-10-04） |
 | 1時間足 | 中間アップデート | 設定ファイルで時刻指定（後で） |
 | 5分足 | 変化・速報（イベント駆動） | 条件成立時のみ（後で） |
 
@@ -48,7 +50,7 @@ updated: 2026-10-03
   README.md             動かし方
   docs/                 STEP1_報告・ANALYSIS_RULES（線の引き方）・X自動投稿の進め方・作業ログ
   config/analysis.yaml  設定値（Pivot期間・ATR・ライン本数など。コードに埋め込まない）
-  src/usdjpy_analysis/  Python 本体（market_data / indicators / swings / levels / trend / trendlines / chart / commentary / pipeline）
+  src/usdjpy_analysis/  Python 本体（market_data / indicators / swings / levels / trend / trendlines / channels / bars / structure / fibonacci / divergence / momentum / zones / safety / ledger / chart / commentary / pipeline）
   run_4h.py             4時間足の実行入口（DRY RUN）
   tests/                動作テストと架空データ
   data/                 ローソク足 CSV（USDJPY_4H.csv 1000本・USDJPY_1D.csv 400本。2026-10-03 TradingView から書き出し）
@@ -75,7 +77,7 @@ updated: 2026-10-03
 
 1. ~~TradingView MCP 接続とツール確認~~ 完了（2026-10-03）
 2. ~~4時間足だけで試作~~ 完了・本物データで実行済み（2026-10-03）
-3. **SHO が線の引き方を確認（今ここ）**
+3. **SHO が線の引き方を確認（今ここ）** — 第2ステージの 4時間足（ダウ理論・フィボ・RSI・注目帯・2 回投稿の型）まで実装済み
 4. 1時間足へ展開（4時間足の方向を参照）
 5. 5分足へ展開（4時間足・1時間足を上位足として参照）
 6. 画像の仕上げ（SNS に載せられる状態）
@@ -86,6 +88,8 @@ updated: 2026-10-03
 ## やること（AI が進められる）
 
 - SHO の感想を受けて線のルールと設定を調整し、作り直す
+- 有名トレーダー手法の調査結果を docs に保存し、解説文の言い回し・判定に反映する
+- 解析の追加提案の B 群（ブレイク・ダマシ・リテストの 6 区分、ADX、EMA 乖離、レンジ専用処理、ローソク足パターン）
 - `social/x_publisher.py`・`config/social.yaml`・定時実行バッチ・タスク スケジューラ手順（DRY RUN）
 - PC で `python run_4h.py --gmo` が動くか確認（GMOコイン klines は未検証）
 - 線のルール確定後に `pine/USDJPY_4H_Analyzer.pine`
@@ -100,6 +104,10 @@ Vault が正本（Dropbox で全 PC に同期）。GitHub は履歴用：`e-almi
 ## 関連
 
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-03|作業ログ 2026-10-03]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-04|作業ログ 2026-10-04]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/解析の追加提案_2026-10-04|解析の追加提案 2026-10-04]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/再開のしかた_合言葉|再開のしかた（合言葉）]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-04_第2ステージ_朝のプラン|第2ステージの出力例（2026-10-04）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/STEP1_報告_2026-10-03|STEP 1 報告（棚卸し・MCP確認）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/ANALYSIS_RULES|ANALYSIS_RULES（線の引き方・解説文のルール）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X自動投稿の進め方|X自動投稿の進め方]]
