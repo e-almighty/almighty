@@ -93,17 +93,35 @@ def test_dow_state_wick_break_kept_on_close_basis():
     assert st_w.direction == "down" and st_w.key_level == 115.0
 
 
+def test_alternate_outside_bar_order_and_dow_handles_both():
+    from usdjpy_analysis import swings
+    highs = _sw([(5, 110.0, "high"), (20, 112.0, "high")])
+    lows = _sw([(5, 100.0, "low"), (12, 105.0, "low")])
+    o = np.full(30, 101.0); c = np.full(30, 109.0)              # 足 5 は陽線 → 安値 → 高値
+    zz = swings.alternate(highs, lows, o, c)
+    assert [(s.index, s.kind) for s in zz] == [(5, "low"), (5, "high"), (12, "low"), (20, "high")]
+    c2 = c.copy(); c2[5] = 100.5                                 # 足 5 を陰線にすると 高値 → 安値（次の安値 105 は同種なので極値 100 が残る）
+    zz2 = swings.alternate(highs, lows, o, c2)
+    assert [(s.index, s.kind) for s in zz2] == [(5, "high"), (5, "low"), (20, "high")]
+    st = structure.dow_state(zz, np.full(30, 111.0), atr_now=1.0, break_atr=0.1)
+    assert st.direction == "up" and st.key_level == 105.0        # 同じ足の高安を両方処理できる
+
+
 # ---------------------------------------------------------------- フィボナッチ
 
 def test_fibonacci_up_wave_levels():
     maj = _sw([(0, 100.0, "low"), (10, 110.0, "high"), (20, 104.0, "low"), (30, 114.0, "high")])
-    fib = fibonacci.compute(maj, close_now=110.18, atr_now=1.0, levels=[0.382, 0.5, 0.618], extensions=[1.0, 1.618],
-                            min_wave_atr=3.0, direction="up")
-    assert fib.start_price == 104.0 and fib.end_price == 114.0
+    high = np.full(40, 112.0); low = np.full(40, 110.0); low[35] = 108.0     # 終点の後の押しの極値＝108
+    kw = dict(levels=[0.382, 0.5, 0.618], extensions=[1.0, 1.618], min_wave_atr=3.0, direction="up", high=high, low=low)
+    fib = fibonacci.compute(maj, close_now=110.18, atr_now=1.0, wave="last_impulse", **kw)
+    assert fib.wave == "last_impulse" and fib.start_price == 104.0 and fib.end_price == 114.0
     assert abs(fib.levels[0.5] - 109.0) < 1e-9 and abs(fib.levels[0.382] - 110.18) < 1e-9
-    assert abs(fib.extensions[1.618] - 120.18) < 1e-9
-    assert abs(fib.current_ratio - 0.382) < 1e-6
-    small = fibonacci.compute(maj, 110.0, atr_now=5.0, levels=[0.5], extensions=[], min_wave_atr=3.0, direction="up")
+    assert abs(fib.extensions[1.0] - 118.0) < 1e-9 and abs(fib.extensions[1.618] - (108.0 + 16.18)) < 1e-9
+    assert fib.ext_base_price == 108.0 and abs(fib.current_ratio - 0.382) < 1e-6
+    # 構造の波（押し安値 → 更新対象の高値）
+    fib2 = fibonacci.compute(maj, close_now=110.18, atr_now=1.0, wave="structure", key_point=(0, 100.0), top_point=(30, 114.0), **kw)
+    assert fib2.wave == "structure" and fib2.start_price == 100.0 and abs(fib2.levels[0.5] - 107.0) < 1e-9
+    small = fibonacci.compute(maj, 110.0, atr_now=5.0, levels=[0.5], extensions=[], min_wave_atr=3.0, direction="up", high=high, low=low)
     assert small is None                                         # 波が ATR×3 未満なら引かない
 
 
@@ -175,7 +193,19 @@ def test_real_csv_snapshot_2026_10_03(tmp_path):
     assert abs(res["structure"]["top_price"] - 159.037) < 1e-6
     assert [round(l["price"], 3) for l in res["supports"]] == [156.587, 155.259, 153.240]
     assert [round(l["price"], 3) for l in res["resistances"]] == [157.957, 159.037, 160.299]
-    assert res["fibonacci"]["direction"] == "up" and abs(res["fibonacci"]["end_price"] - 158.457) < 1e-6
+    assert res["fibonacci"] is None                               # 既定 OFF（SHO 2026-10-04）
+    assert "フィボ" not in res["commentary"]["long"]
+    assert not res["divergences"] or all(d["i1"] != d["i2"] for d in res["divergences"])
+    # ON にすると：主波＝画像の範囲で最も大きな波（09/08 安値 152.888 → 09/24 高値 159.037）、目標＝直近波の 3 点方式
+    cfg2 = pipeline.load_config(CFG); cfg2["fibonacci"]["enabled"] = True
+    res2 = pipeline.analyze(df, cfg2, "4h", dfd, now=datetime(2026, 10, 4, 10, 5, tzinfo=JST), slot="morning")
+    f = res2["fibonacci"]
+    assert f["wave"] == "chart_major" and abs(f["start_price"] - 152.888) < 1e-6 and abs(f["end_price"] - 159.037) < 1e-6
+    assert abs(f["levels"]["0.382"] - (159.037 - 6.149 * 0.382)) < 1e-3
+    t = res2["fibonacci_target"]
+    assert t and abs(t["start_price"] - 156.375) < 1e-6 and abs(t["end_price"] - 158.457) < 1e-6
+    assert abs(t["extensions"]["1.0"] - (156.951 + (158.457 - 156.375))) < 1e-3            # N 計算値＝押しの極値＋波幅
+    assert "フィボナッチ" in res2["commentary"]["long"]
     assert res["daily"]["prev_day"]["label"] == "10/02" and abs(res["daily"]["prev_day"]["high"] - 158.220) < 1e-6
     assert res["daily"]["prev_week"]["label"] == "09/28〜10/02"
     assert res["higher_timeframe"]["close"] == 157.874          # iloc[-2] のずれが直っていること

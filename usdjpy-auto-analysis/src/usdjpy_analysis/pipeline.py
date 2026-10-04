@@ -34,26 +34,29 @@ def _round_numbers(close: float, span: float, step: float = 1.0) -> list[float]:
     return [float(x) for x in np.arange(lo, hi + step / 2, step)]
 
 
-def _effective_trend(tr: trend.TrendResult, dow: structure.DowState) -> tuple[str, int, str]:
+def _effective_trend(tr: trend.TrendResult, dow: structure.DowState, n_bars: int, recent_bars: int = 10,
+                     flipped_jst: str | None = None) -> tuple[str, int, str]:
     """相場環境の点数と、ダウ理論の構造が食い違うときは「ただし書き」を付け、矢印を一段弱める。"""
     label, d = tr.label, tr.direction
     caveat = ""
     weaken = False
+    recent_flip = dow.flipped_index is not None and (n_bars - 1 - dow.flipped_index) <= recent_bars
+    when = f"（{flipped_jst}）" if flipped_jst else ""
     if d > 0:
         if dow.direction == "down":
-            caveat = "ただし、主要な高値・安値はまだ切り下げの形（下降の構造）で、上昇のサインとは食い違っています。"
-            weaken = True
-        elif dow.direction == "up" and "崩れ" in dow.state:
-            caveat = f"ただし、押し安値 {dow.key_level:.3f} を終値で割り込み、上昇の構造は崩れています。"
+            if recent_flip and dow.flipped_note:
+                caveat = f"ただし、{dow.flipped_note}{when}ばかりで、上昇のサインとは食い違っています。"
+            else:
+                caveat = "ただし、主要な高値・安値は切り下げの形（下降の構造）で、上昇のサインとは食い違っています。"
             weaken = True
         elif dow.direction == "none":
             caveat = "ただし、主要な高値・安値の並びでは方向が定まっておらず、勢いの裏付けは弱めです。"
     elif d < 0:
         if dow.direction == "up":
-            caveat = "ただし、主要な高値・安値はまだ切り上げの形（上昇の構造）で、下落のサインとは食い違っています。"
-            weaken = True
-        elif dow.direction == "down" and "崩れ" in dow.state:
-            caveat = f"ただし、戻り高値 {dow.key_level:.3f} を終値で上抜け、下降の構造は崩れています。"
+            if recent_flip and dow.flipped_note:
+                caveat = f"ただし、{dow.flipped_note}{when}ばかりで、下落のサインとは食い違っています。"
+            else:
+                caveat = "ただし、主要な高値・安値は切り上げの形（上昇の構造）で、下落のサインとは食い違っています。"
             weaken = True
         elif dow.direction == "none":
             caveat = "ただし、主要な高値・安値の並びでは方向が定まっておらず、勢いの裏付けは弱めです。"
@@ -106,7 +109,7 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
 
     # ---- スイング（小＝左右 5 本の確定ピボット、主要＝振幅 ATR×2 以上） ----
     highs, lows = swings.find_pivots(h, l, int(tcfg["pivot_left"]), int(tcfg["pivot_right"]))
-    zz = swings.alternate(highs, lows)
+    zz = swings.alternate(highs, lows, o, c)
     zz_highs = [s for s in zz if s.kind == "high"]
     zz_lows = [s for s in zz if s.kind == "low"]
     major = structure.major_swings(zz, atr_now, float(tcfg.get("major_swing_atr", 2.0)))
@@ -138,7 +141,9 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         ema_long=ema_l,
         structure=structure.structure_score(dow),
     )
-    label_eff, dir_eff, caveat = _effective_trend(tr, dow)
+    label_eff, dir_eff, caveat = _effective_trend(
+        tr, dow, n, recent_bars=int(tcfg["pivot_right"]) * 2,
+        flipped_jst=(df.index[dow.flipped_index].tz_convert(ZoneInfo(tz_name)).strftime("%m/%d %H:%M") if dow.flipped_index is not None else None))
 
     # ---- トレンドライン → 平行チャネル ----
     tol = atr_now * float(tcfg["trendline_tolerance_atr"])
@@ -178,10 +183,23 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         fib_dir = "up" if dir_eff > 0 else "down"
     else:
         fib_dir = "up" if close_now > float(ema_s[-1]) else "down"
-    fib = fibonacci.compute(major, close_now, atr_now,
+    key_pt = (dow.key_time_index, dow.key_level) if (dow.direction == fib_dir and dow.key_time_index is not None) else None
+    top_pt = (dow.top_index, dow.top_price) if (dow.direction == fib_dir and dow.top_index is not None) else None
+    fib_ext = [float(x) for x in fcfg.get("extensions", [1.0, 1.618])]
+    fib_min = float(fcfg.get("min_wave_atr", 3.0))
+    fib = fib_t = None
+    if bool(fcfg.get("enabled", False)):
+      fib = fibonacci.compute(major, close_now, atr_now,
                             levels=[float(x) for x in fcfg.get("levels", [0.236, 0.382, 0.5, 0.618, 0.786])],
-                            extensions=[float(x) for x in fcfg.get("extensions", [1.0, 1.618])],
-                            min_wave_atr=float(fcfg.get("min_wave_atr", 3.0)), direction=fib_dir)
+                            extensions=fib_ext, min_wave_atr=fib_min, direction=fib_dir, high=h, low=l,
+                            wave=str(fcfg.get("wave", "chart_major")), window_start=max(n - int(tcfg["bars_to_plot"]), 0),
+                            key_point=key_pt, top_point=top_pt,
+                            projections=[float(x) for x in fcfg.get("projections", [1.272, 1.618])])
+      # 目標用の直近波（主波と同じ波なら二重に出さない）
+      fib_t = fibonacci.compute_target(major, close_now, atr_now, extensions=fib_ext, min_wave_atr=fib_min,
+                                       direction=fib_dir, high=h, low=l)
+      if fib_t is not None and fib is not None and fib_t.start_index == fib.start_index and fib_t.end_index == fib.end_index:
+          fib_t = None
 
     # ---- RSI ダイバージェンス ----
     dcfg = cfg.get("divergence", {})
@@ -189,7 +207,8 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
     divs = divergence.detect(d_highs, d_lows, rsi, n, atr_now,
                              min_price_atr=float(dcfg.get("min_price_atr", 0.3)),
                              min_rsi_diff=float(dcfg.get("min_rsi_diff", 3.0)),
-                             max_age_bars=int(dcfg.get("max_age_bars", 20)), hidden=bool(dcfg.get("hidden", True)))
+                             max_age_bars=int(dcfg.get("max_age_bars", 20)), hidden=bool(dcfg.get("hidden", True)),
+                             max_span_bars=int(dcfg.get("max_span_bars", 60)))
     rsi_sum = momentum.rsi_summary(rsi)
 
     # ---- SQZMOM（文章のみ）と ATR の文脈 ----
@@ -217,10 +236,14 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
     if fib:
         for r, p in fib.levels.items():
             main = r in (0.382, 0.5, 0.618)
-            cands.append(zones.Candidate(p, "フィボナッチ", f"{r * 100:.1f}% 戻し {p:.3f}",
+            cands.append(zones.Candidate(p, "フィボナッチ", f"主波の {r * 100:.1f}% 戻し {p:.3f}",
                                          float(w.get("fib_main" if main else "fib_other", 1.0))))
-        for e, p in fib.extensions.items():
-            cands.append(zones.Candidate(p, "フィボ目標", f"{e * 100:.1f}% {p:.3f}", float(w.get("fib_ext", 1.0))))
+        for e, p in fib.projections.items():
+            cands.append(zones.Candidate(p, "フィボ目標", f"主波の {e * 100:.1f}% {p:.3f}", float(w.get("fib_ext", 1.0))))
+    for ft in ([fib_t] if fib_t else []) + ([fib] if (fib and fib.extensions and not fib_t) else []):
+        for e, p in ft.extensions.items():
+            nm = "N 計算値" if abs(e - 1.0) < 1e-9 else f"{e * 100:.1f}%"
+            cands.append(zones.Candidate(p, "フィボ目標", f"直近波の {nm} {p:.3f}", float(w.get("fib_ext", 1.0))))
     if ch:
         cands.append(zones.Candidate(ch.lower_now, "チャネル", f"下限 {ch.lower_now:.3f}", float(w.get("channel_edge", 1.2))))
         cands.append(zones.Candidate(ch.upper_now, "チャネル", f"上限 {ch.upper_now:.3f}", float(w.get("channel_edge", 1.2))))
@@ -293,14 +316,20 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
                 "distance_pips": z.distance_pips, "distance_atr": z.distance_atr,
                 "distance_text": zones.distance_text(z.distance_atr)}
 
-    fib_d = None
-    if fib:
-        fib_d = {"direction": fib.direction, "start_index": fib.start_index, "start_price": fib.start_price,
-                 "start_jst": jst(fib.start_index), "end_index": fib.end_index, "end_price": fib.end_price,
-                 "end_jst": jst(fib.end_index), "levels": {str(k): round(v, 4) for k, v in fib.levels.items()},
-                 "extensions": {str(k): round(v, 4) for k, v in fib.extensions.items()},
-                 "current_ratio": round(fib.current_ratio, 3) if fib.current_ratio is not None else None,
-                 "current_band": fib.current_band, "wave_pips": round((fib.end_price - fib.start_price) / pip, 1)}
+    def fib_dict(f):
+        if f is None:
+            return None
+        return {"direction": f.direction, "wave": f.wave, "start_index": f.start_index, "start_price": f.start_price,
+                "start_jst": jst(f.start_index), "end_index": f.end_index, "end_price": f.end_price,
+                "end_jst": jst(f.end_index), "levels": {str(k): round(v, 4) for k, v in f.levels.items()},
+                "extensions": {str(k): round(v, 4) for k, v in f.extensions.items()},
+                "projections": {str(k): round(v, 4) for k, v in f.projections.items()},
+                "ext_base_index": f.ext_base_index, "ext_base_price": f.ext_base_price,
+                "ext_base_jst": jst(f.ext_base_index) if f.ext_base_index is not None else None,
+                "current_ratio": round(f.current_ratio, 3) if f.current_ratio is not None else None,
+                "current_band": f.current_band, "wave_pips": round((f.end_price - f.start_price) / pip, 1)}
+
+    fib_d = fib_dict(fib)
 
     div_d = []
     for dv in divs:
@@ -341,6 +370,7 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         "swing_highs": [sw_dict(s) for s in zz_highs[-6:]],
         "swing_lows": [sw_dict(s) for s in zz_lows[-6:]],
         "fibonacci": fib_d,
+        "fibonacci_target": fib_dict(fib_t),
         "divergences": div_d,
         "rsi": rsi_sum,
         "sqzmom": sqz,

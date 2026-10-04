@@ -226,13 +226,20 @@ def _channel_paragraph(ch: dict | None) -> str:
 def _fib_paragraph(result: dict) -> str:
     fib = result.get("fibonacci")
     if not fib:
-        return "フィボナッチ：基準にできる大きさの波（ATR×3 以上）が主要スイングに無いため、今回は引いていません。"
+        return ""
+    wave_note = {"chart_major": "画像に写る範囲で最も大きな波", "structure": "ダウ理論の構造と同じ波"}.get(fib.get("wave"), "主要スイングの最後の推進波")
     if fib["direction"] == "up":
-        base = (f"フィボナッチは {fib['start_jst']} の安値 {_fmt(fib['start_price'])} → {fib['end_jst']} の高値 {_fmt(fib['end_price'])}"
-                f"（{fib['wave_pips']:.0f} pips の上昇波）を基準にしています。")
+        base = (f"フィボナッチは {fib['start_jst']} の安値 {_fmt(fib['start_price'])}（押し安値）→ {fib['end_jst']} の高値 {_fmt(fib['end_price'])}"
+                f"（{fib['wave_pips']:.0f} pips の上昇波・{wave_note}）を基準にしています。"
+                if fib.get("wave") == "structure" else
+                f"フィボナッチは {fib['start_jst']} の安値 {_fmt(fib['start_price'])} → {fib['end_jst']} の高値 {_fmt(fib['end_price'])}"
+                f"（{fib['wave_pips']:.0f} pips の上昇波・{wave_note}）を基準にしています。")
     else:
-        base = (f"フィボナッチは {fib['start_jst']} の高値 {_fmt(fib['start_price'])} → {fib['end_jst']} の安値 {_fmt(fib['end_price'])}"
-                f"（{abs(fib['wave_pips']):.0f} pips の下降波）を基準にしています。")
+        base = (f"フィボナッチは {fib['start_jst']} の高値 {_fmt(fib['start_price'])}（戻り高値）→ {fib['end_jst']} の安値 {_fmt(fib['end_price'])}"
+                f"（{abs(fib['wave_pips']):.0f} pips の下降波・{wave_note}）を基準にしています。"
+                if fib.get("wave") == "structure" else
+                f"フィボナッチは {fib['start_jst']} の高値 {_fmt(fib['start_price'])} → {fib['end_jst']} の安値 {_fmt(fib['end_price'])}"
+                f"（{abs(fib['wave_pips']):.0f} pips の下降波・{wave_note}）を基準にしています。")
     lv = fib["levels"]
     main = "、".join(f"{float(k) * 100:.1f}%＝{_fmt(v)}" for k, v in lv.items() if float(k) in (0.382, 0.5, 0.618))
     t = base + f"押し目（戻り）の目安は {main}。"
@@ -248,9 +255,16 @@ def _fib_paragraph(result: dict) -> str:
                 overlaps.append(f"{fl[0].split(' ')[0]} の {fl[0].split(' ')[-1]} は {'・'.join(others[:3])} と重なります")
     if overlaps:
         t += "根拠の重なり：" + "。".join(overlaps[:3]) + "。"
-    ext = fib.get("extensions") or {}
-    if ext:
-        t += "高値（安値）を更新した後の目標は " + "、".join(f"{float(k) * 100:.1f}%＝{_fmt(v)}" for k, v in ext.items()) + "。"
+    tgt = result.get("fibonacci_target") or (fib if fib.get("extensions") else None)
+    if tgt and tgt.get("extensions") and tgt.get("ext_base_price") is not None:
+        pt = "押し" if tgt["direction"] == "up" else "戻り"
+        names = {1.0: "N 計算値（100%）", 1.618: "161.8%"}
+        t += (f"目標は直近の波 {_fmt(tgt['start_price'])}→{_fmt(tgt['end_price'])}（{tgt['start_jst']}→{tgt['end_jst']}）の"
+              f"{pt}の極値 {_fmt(tgt['ext_base_price'])}（{tgt.get('ext_base_jst')}）を 3 点目にして、"
+              + "、".join(f"{names.get(float(k), f'{float(k) * 100:.1f}%')}＝{_fmt(v)}" for k, v in tgt["extensions"].items()) + "。")
+    proj = fib.get("projections") or {}
+    if proj:
+        t += "主波を伸ばした中期の目安は " + "、".join(f"{float(k) * 100:.1f}%＝{_fmt(v)}" for k, v in proj.items()) + "。"
     return t
 
 
@@ -358,7 +372,8 @@ def build(result: dict, posting: dict | None = None) -> dict:
     sr += ("レジスタンスは " + "、".join(f"{_fmt(l['price'])}円" for l in res) + "。") if res else "表示範囲に明確なレジスタンス候補はありません。"
     lines.append("■ サポート・レジスタンス　" + sr)
     lines.append("■ チャネル　" + _channel_paragraph(ch))
-    lines.append("■ フィボナッチ　" + _fib_paragraph(result))
+    if result.get("fibonacci"):
+        lines.append("■ フィボナッチ　" + _fib_paragraph(result))
     rp = _rsi_paragraph(result)
     if rp:
         lines.append("■ RSI　" + rp)
@@ -409,12 +424,15 @@ def build(result: dict, posting: dict | None = None) -> dict:
     st = result.get("structure") or {}
     if st.get("key_level") is not None:
         nm = "押し安値" if st["direction"] == "up" else "戻り高値"
-        ev.append(f"{nm} {_fmt(st['key_level'])}：直近の主要{'高値' if st['direction'] == 'up' else '安値'}の直前にある主要"
-                  f"{'安値' if st['direction'] == 'up' else '高値'}（{st.get('key_jst')}）。ダウ理論で構造が崩れるかどうかを決める唯一の価格")
+        ev.append(f"{nm} {_fmt(st['key_level'])}：更新対象の{'高値' if st['direction'] == 'up' else '安値'} {_fmt(st['top_price'])}"
+                  f"（{st.get('top_jst')}）を付ける起点になった主要{'安値' if st['direction'] == 'up' else '高値'}（{st.get('key_jst')}）。"
+                  f"ダウ理論で構造が崩れるかどうかを決める唯一の価格")
     fib = result.get("fibonacci")
     if fib:
-        ev.append(f"フィボナッチ：主要スイングの最後の推進波 {_fmt(fib['start_price'])}（{fib['start_jst']}）→ {_fmt(fib['end_price'])}（{fib['end_jst']}）"
-                  f"を 0〜100% とし、38.2／50／61.8% を押し目（戻り）の目安として描画。23.6／78.6% は文章のみ")
+        wv = {"chart_major": "画像に写る範囲で最も大きな波（主波）", "structure": "ダウ理論の構造と同じ波（押し安値→更新対象の高値）"}.get(fib.get("wave"), "主要スイングの最後の推進波")
+        ev.append(f"フィボナッチ：{wv} {_fmt(fib['start_price'])}（{fib['start_jst']}）→ {_fmt(fib['end_price'])}（{fib['end_jst']}）"
+                  f"を 0〜100% とし、38.2／50／61.8% を押し目（戻り）の目安として描画。23.6／78.6% は文章のみ。"
+                  f"目標（N 計算値・161.8%）は終点の後の押し（戻り）の極値を 3 点目にして計算")
     for d in result.get("divergences") or []:
         ev.append(f"{d['label']}：価格 {_fmt(d['p1'])}→{_fmt(d['p2'])}、RSI {d['r1']:.1f}→{d['r2']:.1f}（{d['t1_jst']}→{d['t2_jst']}）。"
                   f"価格差が ATR×0.3 以上・RSI 差が 3 以上・2 つ目のピボットが直近 20 本以内の条件を満たす")

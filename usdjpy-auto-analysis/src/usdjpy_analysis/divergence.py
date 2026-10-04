@@ -1,6 +1,8 @@
 """RSI ダイバージェンスの検出（通常＝レギュラー、隠れ＝ヒドゥン）。
 
-確定ピボット（左右 pivot 本）の直近 2 組を使う。
+交互スイング（ZigZag 風に並べた確定ピボット）の直近 2 組を使う。
+  同じ足に高値と安値の両方のピボットがある足（アウトサイドバー）は、その足の RSI がどちらの極値も表さないので使わない。
+  2 点の間隔が max_span_bars を超える組も比べない（TradingView の Divergence Indicator の rangeUpper=60 に相当）。
   弱気（通常）  ：価格が高値を切り上げ、RSI は切り下げ  → 上昇の勢いが落ちている兆し
   強気（通常）  ：価格が安値を切り下げ、RSI は切り上げ  → 下落の勢いが落ちている兆し
   強気（隠れ）  ：価格が安値を切り上げ、RSI は切り下げ  → 上昇トレンドの押し目で出やすい（継続示唆）
@@ -44,14 +46,21 @@ MEANING = {
 
 
 def detect(highs: list[Swing], lows: list[Swing], rsi: np.ndarray, n_bars: int, atr_now: float, *,
-           min_price_atr: float, min_rsi_diff: float, max_age_bars: int, hidden: bool) -> list[Divergence]:
+           min_price_atr: float, min_rsi_diff: float, max_age_bars: int, hidden: bool,
+           max_span_bars: int = 60) -> list[Divergence]:
     out: list[Divergence] = []
     min_p = atr_now * min_price_atr
+    both = {s.index for s in highs} & {s.index for s in lows}      # アウトサイドバー
+    highs = [s for s in highs if s.index not in both]
+    lows = [s for s in lows if s.index not in both]
 
     def recent(s: Swing) -> bool:
         return (n_bars - 1 - s.index) <= max_age_bars
 
-    if len(highs) >= 2 and recent(highs[-1]):
+    def span_ok(a: Swing, b: Swing) -> bool:
+        return (b.index - a.index) <= max_span_bars
+
+    if len(highs) >= 2 and recent(highs[-1]) and span_ok(highs[-2], highs[-1]):
         a, b = highs[-2], highs[-1]
         ra, rb = float(rsi[a.index]), float(rsi[b.index])
         if not (np.isnan(ra) or np.isnan(rb)):
@@ -59,7 +68,7 @@ def detect(highs: list[Swing], lows: list[Swing], rsi: np.ndarray, n_bars: int, 
                 out.append(Divergence("bearish", LABELS["bearish"], a.index, a.price, ra, b.index, b.price, rb, MEANING["bearish"]))
             elif hidden and a.price - b.price >= min_p and rb - ra >= min_rsi_diff:
                 out.append(Divergence("hidden_bearish", LABELS["hidden_bearish"], a.index, a.price, ra, b.index, b.price, rb, MEANING["hidden_bearish"]))
-    if len(lows) >= 2 and recent(lows[-1]):
+    if len(lows) >= 2 and recent(lows[-1]) and span_ok(lows[-2], lows[-1]):
         a, b = lows[-2], lows[-1]
         ra, rb = float(rsi[a.index]), float(rsi[b.index])
         if not (np.isnan(ra) or np.isnan(rb)):

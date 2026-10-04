@@ -61,10 +61,11 @@ chart:
   ema_slow_color: "#2980b9"       # EMA50 = 青
   ema_long_color: "#111111"       # EMA200 = 黒（SHO の指定・2026-10-04）
   ema_long_width: 2.4             # EMA200 は太め
-  draw_fib: true                  # フィボ 38.2／50／61.8 を細い破線で描く（金色）
-  draw_key_level: true            # 押し安値／戻り高値を点線で描く
-  draw_prev_day: true             # 前日高安を灰色の破線で描く
-  draw_zones: true                # 注目価格帯を薄い帯で塗る
+  # 画像はシンプルに（SHO 2026-10-04「ガチャガチャしすぎ」）：ローソク足・EMA 3 本・サポレジ・チャネル・押し安値・RSI だけ
+  draw_fib: false                 # 主波のフィボ 38.2／50／61.8（金の細い破線）。fibonacci.enabled も true が必要
+  draw_key_level: true            # 押し安値／戻り高値を点線で描く（ダウ理論の分かれ目）
+  draw_prev_day: false            # 前日高安（灰の破線）。解説文には残る
+  draw_zones: false               # 注目価格帯の薄い帯。解説文には残る
   draw_rsi_panel: true            # RSI をチャートの下に出し、ダイバージェンスの線を引く
   draw_divergence: true           # 価格側にもダイバージェンスの線を引く
   fib_color: "#c8a000"
@@ -86,9 +87,13 @@ tolerances:
   reach_atr: 0.3              # 「到達した」とみなす幅（答え合わせ・前回の線への反応）
 
 fibonacci:
+  enabled: false              # SHO 2026-10-04「フィボナッチは抜いてシンプルに」→ 既定 OFF。true にすると解説・注目価格帯・画像に戻る
+  wave: chart_major           # 主波（リトレースメント用）の取り方：chart_major＝画像に写る範囲で最も大きな波（既定）
+                              #   structure＝ダウ理論と同じ波（押し安値→更新対象の高値）／last_impulse＝主要スイングの最後の推進波
   levels: [0.236, 0.382, 0.5, 0.618, 0.786]   # リトレースメント（文章で使う比率）
   draw_levels: [0.382, 0.5, 0.618]            # 画像に描く比率（線を増やしすぎない）
-  extensions: [1.0, 1.618]                    # 高値更新後の目標（N 計算値＝1.0、161.8%）。文章のみ
+  extensions: [1.0, 1.618]                    # 直近波の目標（3 点方式：押しの極値 ＋ 波幅 × 比率。1.0＝N 計算値）
+  projections: [1.272, 1.618]                 # 主波を伸ばした中期の目安（2 点方式：起点 ＋ 波幅 × 比率）。文章のみ
   min_wave_atr: 3.0                           # 波の大きさが ATR × この値 未満なら引かない
 
 divergence:
@@ -96,6 +101,7 @@ divergence:
   min_price_atr: 0.3          # 価格の差が ATR × この値 以上
   min_rsi_diff: 3.0           # RSI の差が この値 以上
   max_age_bars: 20            # 2 つ目のピボットが直近この本数以内（pivot_right＋15）
+  max_span_bars: 60           # 2 つのピボットの間隔の上限（TradingView の Divergence Indicator の既定 60 と同じ）
   hidden: true                # 隠れ（ヒドゥン）ダイバージェンスも検出する
 
 sqzmom:

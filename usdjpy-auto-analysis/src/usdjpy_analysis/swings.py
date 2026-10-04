@@ -37,9 +37,23 @@ def find_pivots(high, low, left: int, right: int) -> tuple[list[Swing], list[Swi
     return highs, lows
 
 
-def alternate(highs: list[Swing], lows: list[Swing]) -> list[Swing]:
-    """高値と安値を時間順に並べ、同じ種類が続いたら極値の方だけ残す（ZigZag 風）。"""
-    allsw = sorted(highs + lows, key=lambda s: s.index)
+def alternate(highs: list[Swing], lows: list[Swing], open_=None, close=None) -> list[Swing]:
+    """高値と安値を時間順に並べ、同じ種類が続いたら極値の方だけ残す（ZigZag 風）。
+
+    同じ足に高値と安値の両方のピボットがあるとき（アウトサイドバー）は、足の向きで順番を決める：
+      陽線（終値 ≥ 始値）→ 安値 → 高値、陰線 → 高値 → 安値。open_/close を渡さないときは高値 → 安値。
+    """
+    if open_ is not None and close is not None:
+        o = np.asarray(open_, dtype=float)
+        c = np.asarray(close, dtype=float)
+
+        def order(s: Swing) -> int:
+            bullish = c[s.index] >= o[s.index]
+            return (1 if s.kind == "high" else 0) if bullish else (0 if s.kind == "high" else 1)
+    else:
+        def order(s: Swing) -> int:
+            return 0 if s.kind == "high" else 1
+    allsw = sorted(highs + lows, key=lambda s: (s.index, order(s)))
     out: list[Swing] = []
     for s in allsw:
         if out and out[-1].kind == s.kind:

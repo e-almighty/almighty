@@ -58,7 +58,9 @@ def dow_state(major: list[Swing], close: np.ndarray, atr_now: float, break_atr: 
               basis: str = "close") -> DowState:
     n = len(close)
     tol = atr_now * break_atr
-    at = {s.index: s for s in major}
+    at: dict[int, list[Swing]] = {}
+    for s in major:                       # 同じ足に高値と安値があれば、major の並び順（足の向き）で両方処理する
+        at.setdefault(s.index, []).append(s)
     highs_seen: list[Swing] = []
     lows_seen: list[Swing] = []
     state = "none"
@@ -73,8 +75,7 @@ def dow_state(major: list[Swing], close: np.ndarray, atr_now: float, break_atr: 
         return pool[-1] if pool else None
 
     for i in range(n):
-        s = at.get(i)
-        if s is not None:
+        for s in at.get(i, []):
             if s.kind == "high":
                 prev = highs_seen[-1] if highs_seen else None
                 if state == "up":
@@ -82,9 +83,14 @@ def dow_state(major: list[Swing], close: np.ndarray, atr_now: float, break_atr: 
                         top = s
                         key = last_opposite("high") or key      # 押し安値を更新
                 elif state == "down":
-                    if basis == "wick" and key is not None and s.price > key.price + tol:
-                        state, top, key = "up", s, last_opposite("high")
-                        flipped_index, flipped_note = i, f"戻り高値 {key.price:.3f} を高値で上抜け" if key else ""
+                    if key is not None and s.price > key.price:
+                        if basis == "wick" and s.price > key.price + tol:
+                            old_key = key
+                            state, top, key = "up", s, last_opposite("high")
+                            flipped_index, flipped_note = i, f"戻り高値 {old_key.price:.3f} を高値で上抜け、上昇の構造に転換"
+                            wick_breaks = []
+                        elif basis == "close":
+                            wick_breaks.append(s.price)
                 elif state == "none":
                     if prev is not None and s.price > prev.price and len(lows_seen) >= 2 and lows_seen[-1].price > lows_seen[-2].price:
                         state, top, key = "up", s, lows_seen[-1]
@@ -98,15 +104,17 @@ def dow_state(major: list[Swing], close: np.ndarray, atr_now: float, break_atr: 
                 elif state == "up":
                     if key is not None and s.price < key.price:
                         if basis == "wick" and s.price < key.price - tol:
+                            old_key = key
                             state, top, key = "down", s, last_opposite("low")
-                            flipped_index, flipped_note = i, f"押し安値 {key.price:.3f} を安値で割り込み" if key else ""
+                            flipped_index, flipped_note = i, f"押し安値 {old_key.price:.3f} を安値で割り込み、下降の構造に転換"
+                            wick_breaks = []
                         elif basis == "close":
                             wick_breaks.append(s.price)
                 elif state == "none":
                     if prev is not None and s.price < prev.price and len(highs_seen) >= 2 and highs_seen[-1].price < highs_seen[-2].price:
                         state, top, key = "down", s, highs_seen[-1]
                 lows_seen.append(s)
-        # 終値によるブレイク（basis=close）
+        # 終値によるブレイク（basis=close）。その足のスイングを処理してから判定する
         if basis == "close" and key is not None:
             c = float(close[i])
             if state == "up" and c < key.price - tol:

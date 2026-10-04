@@ -275,10 +275,21 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     sub = f"分析日時 {result['analyzed_at_jst']}  現在値 {close_now:.3f}  確定足 {conf.get('last_end_jst', '')} まで（直近{n}本）"
     fig.suptitle(title, x=0.02, y=0.985, ha="left", fontsize=15, fontweight="bold")
     fig.text(0.02, 0.945, sub, ha="left", fontsize=10.5, color="#333333")
-    legend = (f"赤＝サポート　緑＝レジスタンス　紫＝チャネル（破線＝中央）　"
-              f"橙＝EMA{result.get('ema_fast_period', '')}　青＝EMA{result.get('ema_slow_period', '')}"
-              + (f"　黒太線＝EMA{result['ema_long_period']}" if result.get("ema_long_period") else "")
-              + "\n金破線＝フィボナッチ　点線＝押し安値／戻り高値　灰破線＝前日高安　薄い帯＝注目価格帯　青緑の斜線＝RSIダイバージェンス")
+    legend1 = (f"赤＝サポート　緑＝レジスタンス　紫＝チャネル（破線＝中央）　"
+               f"橙＝EMA{result.get('ema_fast_period', '')}　青＝EMA{result.get('ema_slow_period', '')}"
+               + (f"　黒太線＝EMA{result['ema_long_period']}" if result.get("ema_long_period") else ""))
+    parts2 = []
+    if st["draw_fib"] and fib:
+        parts2.append("金破線＝フィボナッチ")
+    if st["draw_key_level"] and stc.get("key_level") is not None:
+        parts2.append("点線＝押し安値／戻り高値")
+    if st["draw_prev_day"] and dl.get("prev_day"):
+        parts2.append("灰破線＝前日高安")
+    if st["draw_zones"] and (zones.get("above") or zones.get("below")):
+        parts2.append("薄い帯＝注目価格帯")
+    if ax_rsi is not None:
+        parts2.append("下段＝RSI(14)" + ("　青緑の斜線＝ダイバージェンス" if divs and st["draw_divergence"] else ""))
+    legend = legend1 + ("\n" + "　".join(parts2) if parts2 else "")
     fig.text(0.98, 0.935, legend, ha="right", va="center", fontsize=8.5, color="#666666")
     fig.text(0.98, 0.012, "テクニカル分析の参考情報であり、投資助言ではありません。価格は参考値（15分以上の遅延あり）。", ha="right", fontsize=8.5, color="#888888")
 
