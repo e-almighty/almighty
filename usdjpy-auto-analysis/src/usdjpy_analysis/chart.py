@@ -1,9 +1,9 @@
 """投稿用チャート画像（PNG）。
 
 描くもの（docs/ANALYSIS_RULES.md「投稿画像」）:
-  銘柄・時間足・現在値・分析日時／ローソク足／サポート（緑）／レジスタンス（赤）
-  トレンドライン（青）／EMA fast・slow（細線）／右端に価格ラベル
-ラインは多すぎないこと。サポレジ各 1〜3 本、トレンドラインは最大 1 本ずつ。
+  銘柄・時間足・現在値・分析日時／ローソク足／サポート（赤・太線）／レジスタンス（緑・太線）
+  平行チャネル（紫＝上限・下限、薄紫の破線＝中央）／EMA20（橙）・50（青）・200（黒太線）／右端に名前入りの価格ラベル
+ラインは多すぎないこと。サポレジ各 1〜3 本、チャネルは 1 組。
 """
 from __future__ import annotations
 
@@ -27,12 +27,13 @@ DEFAULT_STYLE = {
     "resistance_color": "#1b9e4b",  # レジスタンス＝緑（SHO の指定・2026-10-04）
     "level_linewidth": 2.8,         # サポレジの線の太さ（「バーンと」分かるように）
     "level_label_size": 11,         # 右端のラベルの文字サイズ
-    "channel_color": "#222222",         # チャネル上限・下限（黒）
-    "channel_center_color": "#777777",  # チャネル中央（灰・破線）
+    "channel_color": "#6a1b9a",         # チャネル上限・下限（紫）
+    "channel_center_color": "#b39ddb",  # チャネル中央（薄い紫・破線）
     "channel_linewidth": 1.8,
-    "ema_fast_color": "#f39c12",        # EMA20
-    "ema_slow_color": "#2980b9",        # EMA50
-    "ema_long_color": "#8e44ad",        # EMA200
+    "ema_fast_color": "#f39c12",        # EMA20 = 橙
+    "ema_slow_color": "#2980b9",        # EMA50 = 青
+    "ema_long_color": "#111111",        # EMA200 = 黒・太め（SHO の指定・2026-10-04）
+    "ema_long_width": 2.4,
 }
 COLOR_NOW = "#444444"
 
@@ -71,7 +72,7 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     if ema_slow is not None:
         adds.append(mpf.make_addplot(pd.Series(ema_slow[-n:], index=plot_df.index), color=st["ema_slow_color"], width=1.2))
     if ema_long is not None:
-        adds.append(mpf.make_addplot(pd.Series(ema_long[-n:], index=plot_df.index), color=st["ema_long_color"], width=1.4))
+        adds.append(mpf.make_addplot(pd.Series(ema_long[-n:], index=plot_df.index), color=st["ema_long_color"], width=float(st["ema_long_width"])))
 
     # 縦軸の範囲：描く足の高安 ± ATR。その外にあるサポレジは描かない（解説文には残る）
     atr_v = float(result.get("atr") or 0.0)
@@ -156,9 +157,9 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     sub = f"分析日時 {result['analyzed_at_jst']}  現在値 {close_now:.3f}  （直近{n}本）"
     fig.suptitle(title, x=0.02, y=0.985, ha="left", fontsize=15, fontweight="bold")
     fig.text(0.02, 0.945, sub, ha="left", fontsize=10.5, color="#333333")
-    legend = (f"赤＝サポート　緑＝レジスタンス　黒＝チャネル（破線＝中央）　"
+    legend = (f"赤＝サポート　緑＝レジスタンス　紫＝チャネル（破線＝中央）　"
               f"橙＝EMA{result.get('ema_fast_period', '')}　青＝EMA{result.get('ema_slow_period', '')}"
-              + (f"　紫＝EMA{result['ema_long_period']}" if result.get("ema_long_period") else ""))
+              + (f"　黒太線＝EMA{result['ema_long_period']}" if result.get("ema_long_period") else ""))
     fig.text(0.98, 0.945, legend, ha="right", fontsize=9, color="#666666")
     fig.text(0.98, 0.012, "テクニカル分析の参考情報であり、投資助言ではありません。", ha="right", fontsize=8.5, color="#888888")
 

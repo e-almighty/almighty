@@ -51,9 +51,10 @@ chart:
   resistance_color: "#1b9e4b"
   level_linewidth: 2.8
   level_label_size: 11
-  channel_color: "#222222"        # チャネルの上限・下限（黒）
-  channel_center_color: "#777777" # チャネルの中央線（灰・破線）
+  channel_color: "#6a1b9a"        # チャネルの上限・下限（紫）
+  channel_center_color: "#b39ddb" # チャネルの中央線（薄い紫・破線）
   channel_linewidth: 1.8
   ema_fast_color: "#f39c12"       # EMA20 = 橙
   ema_slow_color: "#2980b9"       # EMA50 = 青
-  ema_long_color: "#8e44ad"       # EMA200 = 紫
+  ema_long_color: "#111111"       # EMA200 = 黒（SHO の指定・2026-10-04）
+  ema_long_width: 2.4             # EMA200 は太め
