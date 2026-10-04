@@ -267,3 +267,27 @@ if __name__ == "__main__":
                 fn()
             print("ok", name)
     print("all stage2 tests passed")
+
+
+def test_post_long_and_short_styles_and_priority_trim():
+    from usdjpy_analysis import commentary
+    # 優先度つきの切り詰め：優先度 0 の行は残り、数字の大きい行から落ちる
+    items = [(0, "頭"), (6, "値幅"), (1, "線"), (0, "免責"), (0, "#tag")]
+    out = commentary._fit_post_priority(items, max_units=14)
+    assert "値幅" not in out and "頭" in out and "免責" in out and "#tag" in out
+    # ハッシュタグはリストでも文字列でもよい
+    assert commentary._hashtag_line({"hashtags": ["#a", "#b"]}) == "#a #b"
+    assert commentary._hashtag_line({"hashtags": "#a #b"}) == "#a #b"
+    # 実データで long／short の両方が上限内に収まり、long には各見出しとハッシュタグ 10 個が入る
+    df = market_data.load_csv(DATA_4H)
+    dfd = market_data.load_csv(DATA_1D)
+    cfg = pipeline.load_config(CFG)
+    now = datetime(2026, 10, 4, 10, 5, tzinfo=JST)
+    res = pipeline.analyze(df, cfg, "4h", dfd, now=now, slot="morning", source="csv")
+    long_post = commentary.build(res, dict(cfg["posting"], post_style="long"))
+    short_post = commentary.build(res, dict(cfg["posting"], post_style="short", x_max_units=280))
+    assert not long_post["post_over_limit"] and not short_post["post_over_limit"]
+    assert short_post["x_units"] <= 280 < long_post["x_units"]
+    for head in ("▼相場環境", "▼構造（ダウ理論）", "▼注目価格帯", "▼シナリオ", "※テクニカル分析の参考情報"):
+        assert head in long_post["post"]
+    assert long_post["post"].rstrip().splitlines()[-1].count("#") == 10

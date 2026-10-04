@@ -42,7 +42,7 @@ TradingView MCP の `mcp-tv-get-ohlcv` の出力をそのまま：列 `t,o,h,l,c
 
 ## 設定
 
-`config/analysis.yaml`。Pivot の左右本数・ATR 期間・サポレジのまとめ幅・ライン本数・EMA 期間・トレンドラインの許容幅・画像サイズ、第2ステージの `tolerances`（判定幅）・`fibonacci`・`divergence`・`sqzmom`・`zones`（根拠の重み）・`posting`（X の文字数・ハッシュタグ）・`chart.draw_*`（描く／描かない）。コードに数字を埋め込まない。
+`config/analysis.yaml`。Pivot の左右本数・ATR 期間・サポレジのまとめ幅・ライン本数・EMA 期間・トレンドラインの許容幅・画像サイズ、第2ステージの `tolerances`（判定幅）・`fibonacci`・`divergence`・`sqzmom`・`zones`（根拠の重み）・`posting`（X 投稿のタイトル・長さ・ハッシュタグ 10 個・long／short）・`chart.draw_*`（描く／描かない）。コードに数字を埋め込まない。
 
 ## 構成
 
