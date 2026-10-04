@@ -140,7 +140,8 @@ def run(df: pd.DataFrame, cfg: dict, out_dir: str | Path, tf: str = "4h",
     png = chart.render(df.tail(int(tcfg["bars_to_analyze"])), result, out_dir / f"{stem}.png",
                        bars_to_plot=int(tcfg["bars_to_plot"]), tz=cfg.get("timezone", "Asia/Tokyo"),
                        width_px=int(ocfg.get("image_width_px", 1600)), height_px=int(ocfg.get("image_height_px", 900)),
-                       dpi=int(ocfg.get("dpi", 100)), ema_fast=arrays["ema_fast"], ema_slow=arrays["ema_slow"])
+                       dpi=int(ocfg.get("dpi", 100)), ema_fast=arrays["ema_fast"], ema_slow=arrays["ema_slow"],
+                       style_cfg=cfg.get("chart"))
     md = out_dir / f"{stem}.md"
     md.write_text(
         f"# {result['symbol']} {result['timeframe_label']} 分析（{result['analyzed_at_jst']} JST）\n\n"

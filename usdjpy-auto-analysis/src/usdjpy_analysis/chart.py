@@ -21,10 +21,17 @@ FONT_CANDIDATES = ["Meiryo", "Yu Gothic", "Yu Gothic UI", "MS Gothic", "Hiragino
                    "Noto Sans CJK JP", "Noto Sans JP", "IPAexGothic", "IPAGothic",
                    "WenQuanYi Zen Hei", "Unifont-JP", "DejaVu Sans"]
 
-COLOR_SUPPORT = "#1b9e4b"
-COLOR_RESIST = "#d62828"
-COLOR_TREND_UP = "#1f6fd6"
-COLOR_TREND_DN = "#8e44ad"
+# 見た目の既定値。config/analysis.yaml の chart: で上書きできる
+DEFAULT_STYLE = {
+    "support_color": "#d62828",     # サポート＝赤（SHO の指定・2026-10-04）
+    "resistance_color": "#1b9e4b",  # レジスタンス＝緑（SHO の指定・2026-10-04）
+    "level_linewidth": 2.8,         # サポレジの線の太さ（「バーンと」分かるように）
+    "level_label_size": 11,         # 右端のラベルの文字サイズ
+    "trend_up_color": "#1f6fd6",
+    "trend_down_color": "#8e44ad",
+    "ema_fast_color": "#f39c12",
+    "ema_slow_color": "#2980b9",
+}
 COLOR_NOW = "#444444"
 
 
@@ -38,8 +45,11 @@ def pick_font() -> str:
 
 def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot: int,
            tz: str, width_px: int = 1600, height_px: int = 900, dpi: int = 100,
-           ema_fast=None, ema_slow=None) -> Path:
-    """df: UTC index の OHLC。result: pipeline.analyze() の戻り値。"""
+           ema_fast=None, ema_slow=None, style_cfg: dict | None = None) -> Path:
+    """df: UTC index の OHLC。result: pipeline.analyze() の戻り値。style_cfg: analysis.yaml の chart:"""
+    st = {**DEFAULT_STYLE, **(style_cfg or {})}
+    COLOR_SUPPORT, COLOR_RESIST = st["support_color"], st["resistance_color"]
+    COLOR_TREND_UP, COLOR_TREND_DN = st["trend_up_color"], st["trend_down_color"]
     font = pick_font()
     plot_df = df.tail(bars_to_plot).copy()
     plot_df.index = plot_df.index.tz_convert(tz)
@@ -55,9 +65,9 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
 
     adds = []
     if ema_fast is not None:
-        adds.append(mpf.make_addplot(pd.Series(ema_fast[-n:], index=plot_df.index), color="#f39c12", width=1.0))
+        adds.append(mpf.make_addplot(pd.Series(ema_fast[-n:], index=plot_df.index), color=st["ema_fast_color"], width=1.0))
     if ema_slow is not None:
-        adds.append(mpf.make_addplot(pd.Series(ema_slow[-n:], index=plot_df.index), color="#2980b9", width=1.2))
+        adds.append(mpf.make_addplot(pd.Series(ema_slow[-n:], index=plot_df.index), color=st["ema_slow_color"], width=1.2))
 
     # 縦軸の範囲：描く足の高安 ± ATR。その外にあるサポレジは描かない（解説文には残る）
     atr_v = float(result.get("atr") or 0.0)
@@ -76,7 +86,7 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
         hl_prices.append(lv["price"]); hl_colors.append(COLOR_SUPPORT)
     for lv in vis_res:
         hl_prices.append(lv["price"]); hl_colors.append(COLOR_RESIST)
-    hlines = dict(hlines=hl_prices, colors=hl_colors, linestyle="-", linewidths=1.4, alpha=0.9) if hl_prices else None
+    hlines = dict(hlines=hl_prices, colors=hl_colors, linestyle="-", linewidths=float(st["level_linewidth"]), alpha=0.95) if hl_prices else None
 
     alines, acolors = [], []
     for key, color in (("trendline_up", COLOR_TREND_UP), ("trendline_down", COLOR_TREND_DN)):
@@ -96,7 +106,7 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
 
     kwargs = dict(type="candle", style=style, figsize=(width_px / dpi, height_px / dpi),
                   returnfig=True, datetime_format="%m/%d %H:%M", xrotation=0, ylabel="",
-                  tight_layout=False, scale_padding={"left": 0.3, "right": 1.6, "top": 0.5, "bottom": 0.6})
+                  tight_layout=False, scale_padding={"left": 1.0, "right": 2.6, "top": 0.5, "bottom": 0.6})
     if adds:
         kwargs["addplot"] = adds
     if hlines:
@@ -106,27 +116,32 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     fig, axes = mpf.plot(plot_df, **kwargs)
     ax = axes[0]
     ax.set_ylim(y_lo, y_hi)
+    ax.yaxis.tick_left()          # 価格の目盛りは左へ。右端はサポレジのラベル専用にする
+    ax.yaxis.set_label_position("left")
 
     # 現在値（点線）
     close_now = result["close"]
     ax.axhline(close_now, color=COLOR_NOW, linestyle=":", linewidth=1.0)
 
-    # 右端の価格ラベル（近すぎるラベルは上下にずらして重ならないようにする）
+    # 右端の価格ラベル（色付きの箱で「サポート／レジスタンス」と明記。近すぎるラベルは上下にずらす）
     x_label = n + 0.8
-    labels = [(lv["price"], f"S {lv['price']:.3f}", COLOR_SUPPORT, False) for lv in vis_sup]
-    labels += [(lv["price"], f"R {lv['price']:.3f}", COLOR_RESIST, False) for lv in vis_res]
-    labels.append((close_now, f"現在 {close_now:.3f}", COLOR_NOW, True))
+    fs = float(st["level_label_size"])
+    labels = [(lv["price"], f"サポート {lv['price']:.3f}", COLOR_SUPPORT, "fill") for lv in vis_sup]
+    labels += [(lv["price"], f"レジスタンス {lv['price']:.3f}", COLOR_RESIST, "fill") for lv in vis_res]
+    labels.append((close_now, f"現在 {close_now:.3f}", COLOR_NOW, "outline"))
     labels.sort(key=lambda t: t[0])
-    min_gap = (y_hi - y_lo) * 0.028
+    min_gap = (y_hi - y_lo) * 0.034
     ys = [t[0] for t in labels]
     for i in range(1, len(ys)):
         if ys[i] - ys[i - 1] < min_gap:
             ys[i] = ys[i - 1] + min_gap
-    for (price, text, color, boxed), y in zip(labels, ys):
-        kw = dict(color=color, fontsize=10, va="center", fontweight="bold")
-        if boxed:
-            kw["bbox"] = dict(boxstyle="round,pad=0.2", fc="white", ec=COLOR_NOW, lw=0.8)
-        ax.text(x_label, y, text, **kw)
+    for (price, text, color, kind), y in zip(labels, ys):
+        if kind == "fill":
+            ax.text(x_label, y, text, color="white", fontsize=fs, va="center", fontweight="bold",
+                    bbox=dict(boxstyle="round,pad=0.3", fc=color, ec=color, lw=1.0))
+        else:
+            ax.text(x_label, y, text, color=color, fontsize=fs - 1, va="center", fontweight="bold",
+                    bbox=dict(boxstyle="round,pad=0.25", fc="white", ec=color, lw=0.9))
     for key, color, name in (("trendline_up", COLOR_TREND_UP, "上昇TL"), ("trendline_down", COLOR_TREND_DN, "下降TL")):
         tl = result.get(key)
         if tl:
@@ -137,7 +152,9 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     sub = f"分析日時 {result['analyzed_at_jst']}  現在値 {close_now:.3f}  （直近{n}本）"
     fig.suptitle(title, x=0.02, y=0.985, ha="left", fontsize=15, fontweight="bold")
     fig.text(0.02, 0.945, sub, ha="left", fontsize=10.5, color="#333333")
-    fig.text(0.98, 0.945, "緑＝サポート　赤＝レジスタンス　青／紫＝トレンドライン　橙／青細線＝EMA", ha="right", fontsize=9, color="#666666")
+    legend = (f"赤＝サポート　緑＝レジスタンス　青／紫＝トレンドライン　"
+              f"橙＝EMA{result.get('ema_fast_period', '')}　青細線＝EMA{result.get('ema_slow_period', '')}")
+    fig.text(0.98, 0.945, legend, ha="right", fontsize=9, color="#666666")
     fig.text(0.98, 0.012, "テクニカル分析の参考情報であり、投資助言ではありません。", ha="right", fontsize=8.5, color="#888888")
 
     out_path = Path(out_path)

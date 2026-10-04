@@ -42,3 +42,14 @@ output:
   image_width_px: 1600
   image_height_px: 900
   dpi: 100
+
+# 画像の見た目（SHO の指定・2026-10-04：サポート＝赤、レジスタンス＝緑、太くはっきり）
+chart:
+  support_color: "#d62828"
+  resistance_color: "#1b9e4b"
+  level_linewidth: 2.8
+  level_label_size: 11
+  trend_up_color: "#1f6fd6"
+  trend_down_color: "#8e44ad"
+  ema_fast_color: "#f39c12"
+  ema_slow_color: "#2980b9"
