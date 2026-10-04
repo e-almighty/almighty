@@ -63,6 +63,7 @@ def classify(
     weak_threshold: int,
     ema_slope_bars: int,
     ema_slope_atr: float,
+    ema_long: np.ndarray | None = None,
 ) -> TrendResult:
     c = float(close[-1])
     ef, es, a = float(ema_fast[-1]), float(ema_slow[-1]), float(atr[-1])
@@ -91,4 +92,8 @@ def classify(
         "ema_slow": round(es, 3),
         "atr": round(a, 3),
     }
+    if ema_long is not None and not np.isnan(ema_long[-1]):
+        el = float(ema_long[-1])
+        details["ema_long"] = round(el, 3)
+        details["close_vs_ema_long"] = "上" if c > el else "下"   # 大局（スコアには入れない。SHO と相談中）
     return TrendResult(LABELS[d], d, score, details)

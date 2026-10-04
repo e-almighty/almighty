@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from . import chart, commentary, indicators, levels, swings, trend, trendlines
+from . import channels, chart, commentary, indicators, levels, swings, trend, trendlines
 
 
 def load_config(path: str | Path) -> dict:
@@ -38,15 +38,27 @@ def _higher_timeframe(df_daily: pd.DataFrame | None, cfg: dict) -> dict | None:
 def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame | None = None,
             now: datetime | None = None) -> dict:
     tcfg = cfg["timeframes"][tf]
+    # 指標は手元にある全データで計算してから、解析範囲（bars_to_analyze）に切る。
+    # EMA200 のような長い線は、切った後に計算すると序盤の値が不正確になるため。
+    full_c = df["close"].to_numpy(dtype=float)
+    full_h = df["high"].to_numpy(dtype=float)
+    full_l = df["low"].to_numpy(dtype=float)
+    ema_long_period = int(tcfg.get("ema_long", 0) or 0)
+    ema_f_full = indicators.ema(full_c, int(tcfg["ema_fast"]))
+    ema_s_full = indicators.ema(full_c, int(tcfg["ema_slow"]))
+    ema_l_full = indicators.ema(full_c, ema_long_period) if ema_long_period else None
+    atr_full = indicators.atr(full_h, full_l, full_c, int(tcfg["atr_period"]))
+
     df = df.tail(int(tcfg["bars_to_analyze"])).copy()
     o, h, l, c = (df[k].to_numpy(dtype=float) for k in ("open", "high", "low", "close"))
     n = len(c)
     if n < max(int(tcfg["ema_slow"]) + 5, 60):
         raise ValueError(f"足が少なすぎます（{n}本）。最低でも {max(int(tcfg['ema_slow']) + 5, 60)} 本必要です")
 
-    atr = indicators.atr(h, l, c, int(tcfg["atr_period"]))
-    ema_f = indicators.ema(c, int(tcfg["ema_fast"]))
-    ema_s = indicators.ema(c, int(tcfg["ema_slow"]))
+    atr = atr_full[-n:]
+    ema_f = ema_f_full[-n:]
+    ema_s = ema_s_full[-n:]
+    ema_l = ema_l_full[-n:] if ema_l_full is not None else None
     atr_now = float(atr[-1])
 
     highs, lows = swings.find_pivots(h, l, int(tcfg["pivot_left"]), int(tcfg["pivot_right"]))
@@ -70,6 +82,7 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         weak_threshold=int(tcfg_trend["weak_threshold"]),
         ema_slope_bars=int(tcfg_trend["ema_slope_bars"]),
         ema_slope_atr=float(tcfg_trend["ema_slope_atr"]),
+        ema_long=ema_l,
     )
 
     tol = atr_now * float(tcfg["trendline_tolerance_atr"])
@@ -89,9 +102,22 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         if tl_dn and tl_dn.touches < 3:
             tl_dn = None
 
+    # 平行チャネル（基準線＝上のトレンドライン。上昇相場は上昇チャネル、下落相場は下降チャネルを優先）
+    far_point = str(tcfg.get("channel_far_point", "extreme"))
+    ch = None
+    for base in ([tl_up, tl_dn] if tr.direction >= 0 else [tl_dn, tl_up]):
+        if base is not None:
+            piv = [s.index for s in (zz_highs if base.kind == "up" else zz_lows)]
+            ch = channels.build_channel(base, h, l, c, tol, far_point=far_point, pivot_indices=piv)
+            if ch is not None:
+                break
+
     tz = ZoneInfo(cfg.get("timezone", "Asia/Tokyo"))
     now = now or datetime.now(tz)
     last_bar_jst = df.index[-1].tz_convert(tz)
+
+    def jst(i: int) -> str:
+        return df.index[int(i)].tz_convert(tz).strftime("%m/%d %H:%M")
 
     def tl_dict(t):
         if t is None:
@@ -100,6 +126,27 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         d["slope"] = t.slope()
         d["t1_utc"] = df.index[t.i1].isoformat()
         d["t2_utc"] = df.index[t.i2].isoformat()
+        d["t1_jst"] = jst(t.i1)
+        d["t2_jst"] = jst(t.i2)
+        return d
+
+    def ch_dict(x):
+        if x is None:
+            return None
+        return {
+            "kind": x.kind, "offset": round(x.offset, 4), "slope": x.slope(),
+            "i1": x.base.i1, "p1": x.base.p1, "i2": x.base.i2, "p2": x.base.p2,
+            "t1_jst": jst(x.base.i1), "t2_jst": jst(x.base.i2),
+            "far_index": x.far_index, "far_price": x.far_price, "far_jst": jst(x.far_index),
+            "touches_base": x.touches_base, "touches_far": x.touches_far,
+            "lower_now": round(x.lower_now, 4), "center_now": round(x.center_now, 4), "upper_now": round(x.upper_now, 4),
+            "position": round(x.position, 3), "position_text": channels.position_text(x.position),
+            "broken": x.broken,
+        }
+
+    def lv_dict(x):
+        d = asdict(x)
+        d["last_touch_jst"] = jst(x.last_touch_index) if x.last_touch_index >= 0 else None
         return d
 
     result = {
@@ -113,9 +160,11 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         "atr": round(atr_now, 4),
         "ema_fast_period": int(tcfg["ema_fast"]),
         "ema_slow_period": int(tcfg["ema_slow"]),
+        "ema_long_period": ema_long_period or None,
         "trend": {"label": tr.label, "direction": tr.direction, "score": tr.score, "details": tr.details},
-        "supports": [asdict(x) for x in sup],
-        "resistances": [asdict(x) for x in res],
+        "supports": [lv_dict(x) for x in sup],
+        "resistances": [lv_dict(x) for x in res],
+        "channel": ch_dict(ch),
         "trendline_up": tl_dict(tl_up),
         "trendline_down": tl_dict(tl_dn),
         "swing_highs": [asdict(s) for s in zz_highs[-6:]],
@@ -123,7 +172,7 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         "higher_timeframe": _higher_timeframe(df_daily, cfg),
     }
     result["commentary"] = commentary.build(result)
-    result["_arrays"] = {"ema_fast": ema_f, "ema_slow": ema_s}
+    result["_arrays"] = {"ema_fast": ema_f, "ema_slow": ema_s, "ema_long": ema_l}
     return result
 
 
@@ -141,11 +190,13 @@ def run(df: pd.DataFrame, cfg: dict, out_dir: str | Path, tf: str = "4h",
                        bars_to_plot=int(tcfg["bars_to_plot"]), tz=cfg.get("timezone", "Asia/Tokyo"),
                        width_px=int(ocfg.get("image_width_px", 1600)), height_px=int(ocfg.get("image_height_px", 900)),
                        dpi=int(ocfg.get("dpi", 100)), ema_fast=arrays["ema_fast"], ema_slow=arrays["ema_slow"],
-                       style_cfg=cfg.get("chart"))
+                       ema_long=arrays["ema_long"], style_cfg=cfg.get("chart"))
     md = out_dir / f"{stem}.md"
+    evidence = "\n".join(f"- {e}" for e in result["commentary"].get("evidence", []))
     md.write_text(
         f"# {result['symbol']} {result['timeframe_label']} 分析（{result['analyzed_at_jst']} JST）\n\n"
         f"![chart]({png.name})\n\n## 解説\n\n{result['commentary']['long']}\n\n"
+        f"## 根拠（線 1 本ごと）\n\n{evidence}\n\n"
         f"## X投稿案（DRY RUN・未投稿）\n\n```\n{result['commentary']['post']}\n```\n",
         encoding="utf-8")
     js = out_dir / f"{stem}.json"

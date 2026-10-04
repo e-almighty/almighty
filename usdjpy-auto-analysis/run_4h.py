@@ -57,6 +57,10 @@ def main() -> int:
     print("=== 解説 ===")
     print(result["commentary"]["long"])
     print()
+    print("=== 根拠 ===")
+    for e in result["commentary"].get("evidence", []):
+        print("-", e)
+    print()
     print("=== X投稿案（未投稿） ===")
     print(result["commentary"]["post"])
     print()

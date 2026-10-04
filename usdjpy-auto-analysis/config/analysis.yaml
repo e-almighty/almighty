@@ -20,7 +20,9 @@ timeframes:
     max_resistance: 3     # 表示するレジスタンスの最大本数
     ema_fast: 20
     ema_slow: 50
-    trendline_candidates: 6     # トレンドライン候補に使う直近スイングの数
+    ema_long: 200         # 大局を見る線（SHO の指定・2026-10-04：20・50・200 の 3 本）
+    channel_far_point: extreme  # 平行線の決め方：extreme=期間内の最も離れた高値/安値（ヒゲ含む）、pivot=確定スイングだけ
+    trendline_candidates: 6     # チャネルの基準線（トレンドライン）候補に使う直近スイングの数
     trendline_tolerance_atr: 0.3 # ラインに「触れた」とみなす幅（ATR 倍）
     trendline_min_touches: 2     # 2点で引き、3点目があれば「有効性あり」
     trendline_max_broken_age: 10 # ブレイクからこの本数より経った線は描かない（直近のブレイクだけ報告）
@@ -49,7 +51,9 @@ chart:
   resistance_color: "#1b9e4b"
   level_linewidth: 2.8
   level_label_size: 11
-  trend_up_color: "#1f6fd6"
-  trend_down_color: "#8e44ad"
-  ema_fast_color: "#f39c12"
-  ema_slow_color: "#2980b9"
+  channel_color: "#222222"        # チャネルの上限・下限（黒）
+  channel_center_color: "#777777" # チャネルの中央線（灰・破線）
+  channel_linewidth: 1.8
+  ema_fast_color: "#f39c12"       # EMA20 = 橙
+  ema_slow_color: "#2980b9"       # EMA50 = 青
+  ema_long_color: "#8e44ad"       # EMA200 = 紫
