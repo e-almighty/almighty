@@ -64,7 +64,11 @@ def sqzmom_summary(high, low, close, *, bb_length: int, bb_mult: float, kc_lengt
     if on_w[-1]:
         length_note = ""
         if median_run:
-            length_note = "（過去の継続の中央値 " + f"{median_run:.0f} 本より" + ("長め）" if streak > median_run else "短め）")
+            if abs(streak - median_run) < 1:
+                cmp = "と同じくらい"
+            else:
+                cmp = "より長め" if streak > median_run else "より短め"
+            length_note = f"。過去の継続の中央値 {median_run:.0f} 本{cmp}"
         state = f"スクイーズ中（{streak} 本連続{length_note}）。値動きが圧縮されており、解放後に大きめの動きが出やすい局面"
     elif since_release is not None and since_release <= 6:
         state = f"スクイーズ解放から {since_release + 1} 本目。動き出した直後で、方向はモメンタムの符号を参考にする局面"
@@ -111,9 +115,9 @@ def atr_text(ctx: dict) -> str:
     t = (f"値幅の目安：4時間足の ATR(14) は {ctx['atr_pips']:.0f} pips で、過去 {int(ctx['percentile'])} ％の足より大きい"
          f"（{ctx['level']}）。")
     if ctx.get("daily_atr_pips"):
-        t += f" 日足の ATR(14) は {ctx['daily_atr_pips']:.0f} pips（1 日の値幅の目安）。"
+        t += f"日足の ATR(14) は {ctx['daily_atr_pips']:.0f} pips（1 日の値幅の目安）。"
         if ctx.get("today_ratio") is not None:
             r = ctx["today_ratio"]
             note = "まだ余地があります" if r < 0.4 else ("平均的な消化です" if r < 0.8 else "1 日分をほぼ出し切っています")
-            t += f" 本日ここまでの値幅は {ctx['today_range_pips']:.0f} pips（日足 ATR の {r * 100:.0f} ％、{note}）。"
+            t += f"本日ここまでの値幅は {ctx['today_range_pips']:.0f} pips（日足 ATR の {r * 100:.0f} ％、{note}）。"
     return t

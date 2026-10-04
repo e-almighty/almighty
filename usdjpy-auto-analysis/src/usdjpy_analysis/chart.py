@@ -71,6 +71,13 @@ def _stack(labels: list[tuple], y_lo: float, y_hi: float, frac: float = 0.034) -
     for i in range(1, len(ys)):
         if ys[i] - ys[i - 1] < min_gap:
             ys[i] = ys[i - 1] + min_gap
+    # 上端からはみ出したら、全体を下にずらす（下端は y_lo まで）
+    over = ys[-1] - (y_hi - min_gap * 0.5) if ys else 0.0
+    if over > 0:
+        ys = [max(y - over, y_lo + min_gap * 0.5) for y in ys]
+        for i in range(1, len(ys)):
+            if ys[i] - ys[i - 1] < min_gap:
+                ys[i] = ys[i - 1] + min_gap
     return ys
 
 
@@ -164,8 +171,10 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     if st["draw_zones"]:
         for side, color in (("above", st["zone_above_color"]), ("below", st["zone_below_color"])):
             for z in zones.get(side, [])[:2]:
-                half = max((z["high"] - z["low"]) / 2.0, atr_v * 0.08)
-                lo, hi = z["center"] - half, z["center"] + half
+                lo, hi = z["low"], z["high"]
+                if hi - lo < atr_v * 0.16:              # 細すぎる帯は最低幅（0.16 ATR）に広げる
+                    mid = (lo + hi) / 2.0
+                    lo, hi = mid - atr_v * 0.08, mid + atr_v * 0.08
                 if hi < y_lo or lo > y_hi:
                     continue
                 ax.axhspan(lo, hi, color=color, alpha=float(st["zone_alpha"]), zorder=0.5, lw=0)
@@ -218,8 +227,9 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
             if x2 < 0:
                 continue
             ax.plot([x1, x2], [d["p1"], d["p2"]], color=st["divergence_color"], linewidth=1.8, alpha=0.95, zorder=4)
-            ax.annotate(d["label"].replace("ダイバージェンス", "ダイバ"), xy=(x2, d["p2"]), xytext=(6, 8 if "bear" in d["kind"] else -14),
-                        textcoords="offset points", fontsize=9, color=st["divergence_color"], fontweight="bold")
+            ax.annotate(d["label"].replace("ダイバージェンス", "ダイバ"), xy=((x1 + x2) / 2.0, (d["p1"] + d["p2"]) / 2.0),
+                        xytext=(0, 10 if "bear" in d["kind"] else -14), textcoords="offset points", ha="center",
+                        fontsize=9, color=st["divergence_color"], fontweight="bold")
             if ax_rsi is not None:
                 ax_rsi.plot([x1, x2], [d["r1"], d["r2"]], color=st["divergence_color"], linewidth=1.8, alpha=0.95, zorder=4)
 
@@ -275,15 +285,15 @@ def render(df: pd.DataFrame, result: dict, out_path: str | Path, *, bars_to_plot
     sub = f"分析日時 {result['analyzed_at_jst']}  現在値 {close_now:.3f}  確定足 {conf.get('last_end_jst', '')} まで（直近{n}本）"
     fig.suptitle(title, x=0.02, y=0.985, ha="left", fontsize=15, fontweight="bold")
     fig.text(0.02, 0.945, sub, ha="left", fontsize=10.5, color="#333333")
-    legend1 = (f"赤＝サポート　緑＝レジスタンス　紫＝チャネル（破線＝中央）　"
-               f"橙＝EMA{result.get('ema_fast_period', '')}　青＝EMA{result.get('ema_slow_period', '')}"
+    legend1 = ("赤＝サポート　緑＝レジスタンス　" + ("紫＝チャネル（破線＝中央）　" if ch else "")
+               + f"橙＝EMA{result.get('ema_fast_period', '')}　青＝EMA{result.get('ema_slow_period', '')}"
                + (f"　黒太線＝EMA{result['ema_long_period']}" if result.get("ema_long_period") else ""))
     parts2 = []
-    if st["draw_fib"] and fib:
+    if st["draw_fib"] and fib and any(visible(p) for p in fib["levels"].values()):
         parts2.append("金破線＝フィボナッチ")
-    if st["draw_key_level"] and stc.get("key_level") is not None:
-        parts2.append("点線＝押し安値／戻り高値")
-    if st["draw_prev_day"] and dl.get("prev_day"):
+    if st["draw_key_level"] and stc.get("key_level") is not None and visible(stc["key_level"]):
+        parts2.append("点線＝" + ("押し安値" if stc.get("direction") == "up" else "戻り高値"))
+    if st["draw_prev_day"] and dl.get("prev_day") and (visible(dl["prev_day"]["high"]) or visible(dl["prev_day"]["low"])):
         parts2.append("灰破線＝前日高安")
     if st["draw_zones"] and (zones.get("above") or zones.get("below")):
         parts2.append("薄い帯＝注目価格帯")

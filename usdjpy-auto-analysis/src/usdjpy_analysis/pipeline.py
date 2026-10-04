@@ -45,7 +45,7 @@ def _effective_trend(tr: trend.TrendResult, dow: structure.DowState, n_bars: int
     if d > 0:
         if dow.direction == "down":
             if recent_flip and dow.flipped_note:
-                caveat = f"ただし、{dow.flipped_note}{when}ばかりで、上昇のサインとは食い違っています。"
+                caveat = f"ただし、{dow.flipped_note}したばかり{when}で、上昇のサインとは食い違っています。"
             else:
                 caveat = "ただし、主要な高値・安値は切り下げの形（下降の構造）で、上昇のサインとは食い違っています。"
             weaken = True
@@ -54,7 +54,7 @@ def _effective_trend(tr: trend.TrendResult, dow: structure.DowState, n_bars: int
     elif d < 0:
         if dow.direction == "up":
             if recent_flip and dow.flipped_note:
-                caveat = f"ただし、{dow.flipped_note}{when}ばかりで、下落のサインとは食い違っています。"
+                caveat = f"ただし、{dow.flipped_note}したばかり{when}で、下落のサインとは食い違っています。"
             else:
                 caveat = "ただし、主要な高値・安値は切り上げの形（上昇の構造）で、下落のサインとは食い違っています。"
             weaken = True
@@ -67,7 +67,8 @@ def _effective_trend(tr: trend.TrendResult, dow: structure.DowState, n_bars: int
 
 
 def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame | None = None,
-            now: datetime | None = None, slot: str | None = None, prev: dict | None = None) -> dict:
+            now: datetime | None = None, slot: str | None = None, prev: dict | None = None,
+            source: str | None = None) -> dict:
     tcfg = cfg["timeframes"][tf]
     tz_name = cfg.get("timezone", "Asia/Tokyo")
     tz = ZoneInfo(tz_name)
@@ -174,6 +175,16 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
     htf_cfg = cfg["higher_timeframe"]["1D"]
     dl = bars.daily_levels(df_daily, now, tz_name, ema_period=int(htf_cfg["ema"]),
                            atr_period=int(htf_cfg.get("atr_period", 14)))
+    if dl and dl.today and dl.today_start_utc:
+        # 「本日ここまで」は日足 CSV の行ではなく、確定した 4時間足から組み立てる（日足 CSV が先の時刻まで入っていても now に整合）
+        seg = df_conf[df_conf.index >= pd.Timestamp(dl.today_start_utc)]
+        if len(seg):
+            dl.today.update({"open": float(seg["open"].iloc[0]), "high": float(seg["high"].max()),
+                             "low": float(seg["low"].min()), "close": float(seg["close"].iloc[-1])})
+        else:
+            dl.today = None   # 本日分の確定足がまだ無い（週明け最初の足など）
+    if dl:
+        bars.merge_today_into_week(dl)
 
     # ---- フィボナッチ（主要スイングの最後の推進波） ----
     fcfg = cfg.get("fibonacci", {})
@@ -343,6 +354,7 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
     result = {
         "symbol": cfg["symbol"],
         "timeframe": tf,
+        "source": source,
         "timeframe_label": tcfg["label"],
         "slot": slot,
         "analyzed_at_jst": now.astimezone(tz).strftime("%Y-%m-%d %H:%M"),
@@ -381,16 +393,15 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         "zones": {"above": [zone_dict(z) for z in z_above], "below": [zone_dict(z) for z in z_below]},
     }
     result["scenarios"] = commentary.scenarios(result)
-    # 前回との変化点（台帳）
+    # 前回との変化点（台帳）。前回が同じ銘柄・時間足・データ源で、今回より新しくないときだけ使う
+    prev, why_not = ledger.usable(prev, symbol=cfg["symbol"], timeframe=tf, source=source,
+                                  last_bar_utc=result["last_bar_utc"], index=df_conf.index)
     if prev is not None:
-        try:
-            prev_last = pd.Timestamp(prev.get("last_bar_utc")) if prev.get("last_bar_utc") else None
-        except Exception:
-            prev_last = None
-        recent = df_conf[df_conf.index > prev_last] if prev_last is not None else None
+        prev_last = pd.Timestamp(prev["last_bar_utc"])
+        recent = df_conf[df_conf.index > prev_last]
         result["changes"] = ledger.changes_since(prev, result, recent, reach_tol=atr_now * float(tol_cfg.get("reach_atr", 0.3)), pip=pip)
     else:
-        result["changes"] = {"available": False, "lines": [], "reactions": []}
+        result["changes"] = {"available": False, "lines": [why_not] if why_not else [], "reactions": []}
     result["commentary"] = commentary.build(result, cfg.get("posting", {}))
     result["_arrays"] = {"ema_fast": ema_f, "ema_slow": ema_s, "ema_long": ema_l, "rsi": rsi}
     result["_df"] = df
@@ -399,13 +410,15 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
 
 def run(df: pd.DataFrame, cfg: dict, out_dir: str | Path, tf: str = "4h",
         df_daily: pd.DataFrame | None = None, stem: str | None = None, now: datetime | None = None,
-        slot: str | None = None, use_ledger: bool | None = None) -> dict:
+        slot: str | None = None, use_ledger: bool | None = None, source: str | None = None) -> dict:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     if use_ledger is None:
         use_ledger = bool(cfg.get("ledger", {}).get("enabled", True))
+    if source == "sample":          # 架空データの結果を「前回」として残さない
+        use_ledger = False
     prev = ledger.load_last(out_dir / "state") if use_ledger else None
-    result = analyze(df, cfg, tf, df_daily, now=now, slot=slot, prev=prev)
+    result = analyze(df, cfg, tf, df_daily, now=now, slot=slot, prev=prev, source=source)
     stamp = result["analyzed_at_jst"].replace("-", "").replace(" ", "_").replace(":", "")
     stem = stem or f"{cfg['symbol']}_{tf}_{stamp}"
     tcfg = cfg["timeframes"][tf]
@@ -427,7 +440,8 @@ def run(df: pd.DataFrame, cfg: dict, out_dir: str | Path, tf: str = "4h",
         f"## シナリオ表\n\n{cm['table']}\n\n"
         f"## 根拠（線 1 本ごと）\n\n{evidence}\n\n"
         f"## X投稿案（DRY RUN・未投稿）\n\n```\n{cm['post']}\n```\n\n"
-        + (f"## 表現チェック\n\n置き換えた語：{', '.join(cm['safety_hits'])}\n" if cm.get("safety_hits") else ""),
+        + (f"## 表現チェック\n\n見つかった語：{', '.join(cm['safety_hits'])}\n" if cm.get("safety_hits") else "")
+        + ("## 注意\n\nX 投稿案が文字数上限を超えています。短くしてから投稿してください。\n" if cm.get("post_over_limit") else ""),
         encoding="utf-8")
     js = out_dir / f"{stem}.json"
     js.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=_json_default), encoding="utf-8")

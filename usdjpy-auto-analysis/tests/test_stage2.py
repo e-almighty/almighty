@@ -49,13 +49,27 @@ def test_daily_levels_prev_day_and_week():
     df = pd.DataFrame({"open": 150 + base, "high": 151 + base, "low": 149 + base, "close": 150.5 + base, "volume": 0.0}, index=idx)
     now = datetime(2026, 10, 4, 10, 5, tzinfo=JST)              # 日曜の朝
     dl = bars.daily_levels(df, now, "Asia/Tokyo", ema_period=5)
-    assert dl.prev_day["label"] == "10/02" and dl.prev_day["high"] == 160.0
+    assert dl.prev_day["label"] == "10/02 金" and dl.prev_day["high"] == 160.0
     assert dl.prev_week["label"] == "09/28〜10/02" and dl.prev_week["high"] == 160.0 and dl.prev_week["low"] == 154.0
     assert dl.this_week is None and dl.today is None
     now_fri = datetime(2026, 10, 2, 10, 5, tzinfo=JST)          # 金曜の朝：10/2 の足は進行中
     dl2 = bars.daily_levels(df, now_fri, "Asia/Tokyo", ema_period=5)
-    assert dl2.prev_day["label"] == "10/01" and dl2.today["label"] == "10/02"
+    assert dl2.prev_day["label"] == "10/01 木" and dl2.today["label"] == "10/02 金"
     assert dl2.prev_week["label"] == "09/21〜09/25" and dl2.this_week is not None
+    assert dl2.this_week["high"] == 159.0                       # 確定分だけ。本日分は pipeline が 4時間足から足す
+    bars.merge_today_into_week(dl2)
+    assert dl2.this_week["high"] == 160.0 and dl2.this_week["close"] == dl2.today["close"]
+    # --now を過去にしたとき：CSV に未来の足があっても「本日」は now 時点の進行中の足だけ
+    now_wed = datetime(2026, 9, 30, 20, 5, tzinfo=JST)
+    dl3 = bars.daily_levels(df, now_wed, "Asia/Tokyo", ema_period=5)
+    assert dl3.prev_day["label"] == "09/29 火" and dl3.today["label"] == "09/30 水"
+    # 土曜の早朝（金曜の足がまだ進行中）：今週を「前週」と呼ばない
+    now_sat = datetime(2026, 10, 3, 3, 0, tzinfo=JST)
+    dl4 = bars.daily_levels(df, now_sat, "Asia/Tokyo", ema_period=5)
+    assert dl4.today["label"] == "10/02 金" and dl4.prev_week["label"] == "09/21〜09/25"
+    # tz なしの now は設定のタイムゾーン（JST）として扱う
+    done, pending, _ = bars.confirmed(df, datetime(2026, 10, 2, 10, 5))
+    assert len(pending) == 1
 
 
 # ---------------------------------------------------------------- 主要スイングとダウ理論
@@ -149,8 +163,17 @@ def test_zones_merge_and_rank():
          zones.Candidate(156.0, "サポート", "s", 2.0)]
     above, below = zones.build(c, close_now=157.8, atr_now=0.5, merge_atr=0.4, max_each_side=2, pip=0.01)
     assert [z.kinds() for z in above][0] == ["レジスタンス", "フィボナッチ"] and above[0].score == 3.5
-    assert below[0].kinds() == ["EMA50", "EMA200"] and below[1].kinds() == ["サポート"]
-    assert zones.distance_text(0.2) == "目前" and zones.distance_text(10) == "中期の目安"
+    assert below[0].kinds() == ["EMA200", "EMA50"] and below[1].kinds() == ["サポート"]   # 種類は重み順
+    assert zones.distance_text(0.2) == "目前" and zones.distance_text(10) == "中期の目安" and zones.distance_text(3) == "1〜2 日の射程"
+    # 帯の幅は tol 以内（連鎖で広がらない）、同じ種類の 2 本目は得点に足さない、現在値をまたぐ帯は上下に分ける
+    c2 = [zones.Candidate(100.00 + 0.19 * i, "節目", f"n{i}", 0.5) for i in range(6)]      # 0.19 刻み（tol=0.2）
+    c2 += [zones.Candidate(101.0, "フィボナッチ", "a", 1.5), zones.Candidate(101.05, "フィボナッチ", "b", 1.5)]
+    above2, below2 = zones.build(c2, close_now=100.5, atr_now=0.5, merge_atr=0.4, max_each_side=5, pip=0.01)
+    for z in above2 + below2:
+        assert z.high - z.low <= 0.2 + 1e-9
+        assert all(m.price > 100.5 for m in z.members) or all(m.price <= 100.5 for m in z.members)
+    fibz = [z for z in above2 if "フィボナッチ" in z.kinds()][0]
+    assert fibz.score == 1.5 and len(fibz.members) == 2
 
 
 # ---------------------------------------------------------------- 安全弁
@@ -159,6 +182,22 @@ def test_safety_replaces_banned_words():
     text, hits = safety.sanitize("ここは必ず反発するので買いです。エントリー推奨。")
     assert "必ず" not in text and "買いです" not in text and "推奨" not in text
     assert "必ず" in hits and "推奨" in hits
+    # 文法を壊さない／誤検出しない
+    t2, h2 = safety.sanitize("必ずしも反発するとは限らず、不確実性が高い。非推奨の形。上抜けるべきではない。")
+    assert t2.startswith("必ずしも") and "不確実" in t2 and "非推奨" in t2 and "上抜けるのは一案ではない" in t2
+    assert h2 == ["べき"]
+
+
+def test_ledger_usable_rejects_mismatch(tmp_path):
+    from usdjpy_analysis import ledger
+    idx = pd.date_range("2026-10-01", periods=5, freq="4h", tz="UTC")
+    prev = {"symbol": "USDJPY", "timeframe": "4h", "source": "csv", "last_bar_utc": idx[2].isoformat()}
+    ok, _ = ledger.usable(prev, symbol="USDJPY", timeframe="4h", source="csv", last_bar_utc=idx[4].isoformat(), index=idx)
+    assert ok is prev
+    bad, why = ledger.usable({**prev, "source": "sample"}, symbol="USDJPY", timeframe="4h", source="csv", last_bar_utc=idx[4].isoformat(), index=idx)
+    assert bad is None and "データ源" in why
+    bad2, why2 = ledger.usable(prev, symbol="USDJPY", timeframe="4h", source="csv", last_bar_utc=idx[1].isoformat(), index=idx)
+    assert bad2 is None and "新しい" in why2
 
 
 # ---------------------------------------------------------------- 通し（架空データと本物の CSV）
@@ -167,16 +206,21 @@ def test_end_to_end_sample_morning_and_evening(tmp_path):
     df = make_sample(400, seed=3)
     cfg = pipeline.load_config(CFG)
     now = (df.index[-1] + pd.Timedelta(hours=4)).to_pydatetime().astimezone(JST)
-    res = pipeline.run(df, cfg, tmp_path, "4h", market_data.resample(df, "1D"), now=now, slot="morning")
+    res = pipeline.run(df, cfg, tmp_path, "4h", market_data.resample(df, "1D"), now=now, slot="morning", source="csv")
     assert Path(res["files"]["png"]).exists() and res["slot"] == "morning"
     assert res["structure"]["direction"] in {"up", "down", "none"}
     assert res["zones"]["above"] or res["zones"]["below"]
     assert res["commentary"]["x_units"] <= cfg["posting"]["x_max_units"]
     assert "必ず" not in res["commentary"]["long"]
     # 2 回目（中間報告）は台帳から前回を読んで「変化点」を書く
-    res2 = pipeline.run(df, cfg, tmp_path, "4h", market_data.resample(df, "1D"), now=now, slot="evening")
+    res2 = pipeline.run(df, cfg, tmp_path, "4h", market_data.resample(df, "1D"), now=now, slot="evening", source="csv")
     assert res2["changes"]["available"] and "前回" in res2["commentary"]["long"]
     assert (tmp_path / "ledger.csv").exists() and (tmp_path / "state" / "last_result.json").exists()
+    assert not res2["commentary"]["post_over_limit"]
+    # 架空データ（source="sample"）は台帳に残さない。別のデータ源の前回は比較に使わない
+    pipeline.run(df, cfg, tmp_path, "4h", market_data.resample(df, "1D"), now=now, slot="evening", source="sample")
+    res3 = pipeline.run(df, cfg, tmp_path, "4h", market_data.resample(df, "1D"), now=now, slot="evening", source="gmo")
+    assert not res3["changes"]["available"] and "データ源" in res3["changes"]["lines"][0]
 
 
 def test_real_csv_snapshot_2026_10_03(tmp_path):
@@ -206,7 +250,7 @@ def test_real_csv_snapshot_2026_10_03(tmp_path):
     assert t and abs(t["start_price"] - 156.375) < 1e-6 and abs(t["end_price"] - 158.457) < 1e-6
     assert abs(t["extensions"]["1.0"] - (156.951 + (158.457 - 156.375))) < 1e-3            # N 計算値＝押しの極値＋波幅
     assert "フィボナッチ" in res2["commentary"]["long"]
-    assert res["daily"]["prev_day"]["label"] == "10/02" and abs(res["daily"]["prev_day"]["high"] - 158.220) < 1e-6
+    assert res["daily"]["prev_day"]["label"] == "10/02 金" and abs(res["daily"]["prev_day"]["high"] - 158.220) < 1e-6
     assert res["daily"]["prev_week"]["label"] == "09/28〜10/02"
     assert res["higher_timeframe"]["close"] == 157.874          # iloc[-2] のずれが直っていること
     assert res["trend"]["label"] == "強い上昇" and res["trend"]["caveat"] == ""

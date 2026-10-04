@@ -39,6 +39,7 @@ def main() -> int:
 
     cfg = pipeline.load_config(args.config)
     df_daily = None
+    source = "sample" if args.sample else ("gmo" if args.gmo else ("csv" if args.csv else "json"))
     if args.sample:
         sys.path.insert(0, str(HERE / "tests"))
         from make_sample import make_sample  # type: ignore
@@ -63,10 +64,12 @@ def main() -> int:
     if args.now:
         from datetime import datetime
         from zoneinfo import ZoneInfo
-        now = datetime.fromisoformat(args.now).replace(tzinfo=ZoneInfo(cfg.get("timezone", "Asia/Tokyo")))
+        now = datetime.fromisoformat(args.now)
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=ZoneInfo(cfg.get("timezone", "Asia/Tokyo")))
     slot = None if args.slot == "auto" else args.slot
     result = pipeline.run(df, cfg, args.out, "4h", df_daily, now=now, slot=slot,
-                          use_ledger=(False if args.no_ledger else None))
+                          use_ledger=(False if args.no_ledger else None), source=source)
     print("=== 解説 ===")
     print(result["commentary"]["long"])
     print()
@@ -80,7 +83,9 @@ def main() -> int:
     print(f"=== X投稿案（未投稿・{result['commentary']['x_units']} 単位） ===")
     print(result["commentary"]["post"])
     if result["commentary"].get("safety_hits"):
-        print("（表現チェックで置き換えた語：", ", ".join(result["commentary"]["safety_hits"]), "）")
+        print("（表現チェックで見つかった語：", ", ".join(result["commentary"]["safety_hits"]), "）")
+    if result["commentary"].get("post_over_limit"):
+        print("（注意：X 投稿案が文字数上限を超えています）")
     print()
     print("保存先:")
     for k, v in result["files"].items():

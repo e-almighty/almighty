@@ -35,10 +35,16 @@ def infer_bar_seconds(index: pd.DatetimeIndex) -> int:
     return int(d.median().total_seconds())
 
 
+def _now_utc(now: datetime, tz: str) -> pd.Timestamp:
+    """tz なしの now は設定のタイムゾーン（既定 JST）とみなす。"""
+    t = pd.Timestamp(now)
+    return t.tz_convert("UTC") if t.tzinfo else t.tz_localize(tz).tz_convert("UTC")
+
+
 def confirmed(df: pd.DataFrame, now: datetime, tz: str = "Asia/Tokyo") -> tuple[pd.DataFrame, pd.DataFrame, ConfirmedInfo]:
     """(確定足だけの df, 進行中の足の df, 情報) を返す。"""
     sec = infer_bar_seconds(df.index)
-    now_utc = pd.Timestamp(now).tz_convert("UTC") if pd.Timestamp(now).tzinfo else pd.Timestamp(now).tz_localize("UTC")
+    now_utc = _now_utc(now, tz)
     ends = df.index + pd.Timedelta(seconds=sec)
     mask = ends <= now_utc
     done = df[mask]
@@ -63,14 +69,22 @@ class DailyLevels:
     prev_week: dict | None = None       # {"label": "9/28〜10/02", "high","low","close"}
     this_week: dict | None = None       # 今週ここまで（あれば）
     today: dict | None = None           # 進行中の日足（あれば）＝本日ここまで
+    today_start_utc: str | None = None  # その足の始まり（4時間足から本日分を組み立て直すのに使う）
     daily_atr: float | None = None      # 日足 ATR(14)
     daily_ema: dict | None = None       # {"period":50,"value":..., "above": bool, "close": 前日終値}
     notes: list[str] = field(default_factory=list)
 
 
+_WD = "月火水木金土日"
+
+
 def _bar_dict(row: pd.Series, label: str) -> dict:
     return {"label": label, "open": float(row["open"]), "high": float(row["high"]),
             "low": float(row["low"]), "close": float(row["close"])}
+
+
+def _day_label(ts: pd.Timestamp) -> str:
+    return f"{ts.strftime('%m/%d')} {_WD[ts.weekday()]}"
 
 
 def daily_levels(df_daily: pd.DataFrame | None, now: datetime, tz: str, *, ema_period: int,
@@ -79,12 +93,19 @@ def daily_levels(df_daily: pd.DataFrame | None, now: datetime, tz: str, *, ema_p
     if df_daily is None or len(df_daily) < 5:
         return None
     from . import indicators
-    done, pending, _ = confirmed(df_daily, now, tz)
+    done, pending, info = confirmed(df_daily, now, tz)
     out = DailyLevels()
     last = done.iloc[-1]
-    out.prev_day = _bar_dict(last, done.index[-1].tz_convert(tz).strftime("%m/%d"))
-    if len(pending) > 0:
-        out.today = _bar_dict(pending.iloc[-1], pending.index[-1].tz_convert(tz).strftime("%m/%d"))
+    out.prev_day = _bar_dict(last, _day_label(done.index[-1].tz_convert(tz)))
+    # 本日ここまで＝「始まり ≤ now < 終わり」の進行中の足だけ（CSV に now より後の足があっても使わない）
+    now_utc = _now_utc(now, tz)
+    today_ts = None
+    for ts in pending.index:
+        if ts <= now_utc < ts + pd.Timedelta(seconds=info.bar_seconds):
+            out.today = _bar_dict(pending.loc[ts], _day_label(ts.tz_convert(tz)))
+            out.today_start_utc = ts.isoformat()
+            today_ts = ts
+            break
     # 日足 ATR と EMA は確定足で計算
     c = done["close"].to_numpy(dtype=float)
     a = indicators.atr(done["high"].to_numpy(dtype=float), done["low"].to_numpy(dtype=float), c, atr_period)
@@ -97,10 +118,11 @@ def daily_levels(df_daily: pd.DataFrame | None, now: datetime, tz: str, *, ema_p
     jst = done.copy()
     jst.index = jst.index.tz_convert(tz)
     wk = jst.resample("W-FRI", label="right", closed="right").agg({"open": "first", "high": "max", "low": "min", "close": "last"}).dropna()
-    now_jst = pd.Timestamp(now).tz_convert(tz)
-    # now が属する週の金曜（W-FRI の右端ラベル）
-    days_to_fri = (4 - now_jst.weekday()) % 7
-    cur_fri = (now_jst.normalize() + pd.Timedelta(days=days_to_fri)).date()
+    # now が属する週の金曜（W-FRI の右端ラベル）。進行中の日足があればその足の日付（JST）で決める
+    # （土曜の早朝、金曜の足がまだ終わっていない時間帯に今週を「前週」と呼ばないため）
+    ref = today_ts.tz_convert(tz) if today_ts is not None else now_utc.tz_convert(tz)
+    days_to_fri = (4 - ref.weekday()) % 7
+    cur_fri = (ref.normalize() + pd.Timedelta(days=days_to_fri)).date()
     finished = [t for t in wk.index if t.date() < cur_fri]
     current = [t for t in wk.index if t.date() == cur_fri]
     if finished:
@@ -114,3 +136,15 @@ def daily_levels(df_daily: pd.DataFrame | None, now: datetime, tz: str, *, ema_p
         out.this_week = {"label": "今週ここまで", "open": float(row["open"]), "high": float(row["high"]),
                          "low": float(row["low"]), "close": float(row["close"])}
     return out
+
+
+def merge_today_into_week(dl: "DailyLevels") -> None:
+    """今週ここまで に、進行中の本日分（today）を合算する。pipeline が today を 4時間足で確定させた後に呼ぶ。"""
+    if not dl.today:
+        return
+    if dl.this_week:
+        dl.this_week["high"] = max(dl.this_week["high"], dl.today["high"])
+        dl.this_week["low"] = min(dl.this_week["low"], dl.today["low"])
+        dl.this_week["close"] = dl.today["close"]
+    else:
+        dl.this_week = {"label": "今週ここまで", **{k: dl.today[k] for k in ("open", "high", "low", "close")}}

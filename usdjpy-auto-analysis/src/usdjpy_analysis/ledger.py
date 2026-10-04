@@ -10,11 +10,15 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 
 def summary_of(result: dict) -> dict:
     zones = result.get("zones") or {}
     return {
+        "symbol": result.get("symbol"),
+        "timeframe": result.get("timeframe"),
+        "source": result.get("source"),
         "analyzed_at_jst": result["analyzed_at_jst"],
         "last_bar_utc": result.get("last_bar_utc"),
         "slot": result.get("slot"),
@@ -40,17 +44,44 @@ def load_last(state_dir: Path) -> dict | None:
         return None
 
 
+def usable(prev: dict | None, *, symbol: str, timeframe: str, source: str | None, last_bar_utc: str,
+           index) -> tuple[dict | None, str]:
+    """前回結果を使ってよいか。使えないときは (None, 理由)。"""
+    if prev is None:
+        return None, ""
+    if prev.get("symbol") != symbol or prev.get("timeframe") != timeframe:
+        return None, "前回の結果は別の銘柄・時間足のため比較していません。"
+    if source and prev.get("source") and prev["source"] != source:
+        return None, f"前回の結果はデータ源が違う（{prev['source']}）ため比較していません。"
+    try:
+        pt = pd.Timestamp(prev.get("last_bar_utc"))
+        ct = pd.Timestamp(last_bar_utc)
+    except Exception:
+        return None, "前回の結果の時刻が読めないため比較していません。"
+    if pt > ct:
+        return None, "前回の結果の方が新しい足に基づくため比較していません。"
+    if index is not None and pt not in index:
+        return None, "前回の最終足が今回のデータに無いため比較していません。"
+    return prev, ""
+
+
 def save(result: dict, out_dir: Path) -> None:
     state_dir = Path(out_dir) / "state"
     state_dir.mkdir(parents=True, exist_ok=True)
     s = summary_of(result)
     (state_dir / "last_result.json").write_text(json.dumps(s, ensure_ascii=False, indent=2), encoding="utf-8")
     p = Path(out_dir) / "ledger.csv"
+    header = list(s.keys())
+    if p.exists():
+        with p.open(encoding="utf-8", newline="") as f:
+            first = f.readline().rstrip("\r\n").split(",")
+        if first != header:          # 列が変わったら古い台帳を退避して新しく始める
+            p.rename(p.with_name(f"ledger_old_{len(list(p.parent.glob('ledger_old_*.csv'))) + 1}.csv"))
     new = not p.exists()
     with p.open("a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
-            w.writerow(list(s.keys()))
+            w.writerow(header)
         w.writerow([json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else v for v in s.values()])
 
 

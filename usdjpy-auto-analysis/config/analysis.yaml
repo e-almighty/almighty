@@ -107,9 +107,9 @@ divergence:
 sqzmom:
   in_text: true               # 解説文に 1 行入れる（false で消える）。画像には描かない（SHO 2026-10-04）
   bb_length: 20
-  bb_mult: 2.0
+  bb_mult: 1.5                # LazyBear の原典は BB の偏差にも KC 側の 1.5 を使う（dev = multKC × stdev）。TradingView の表示と同じにするため 1.5
   kc_length: 20
-  kc_mult: 1.5                # TradingView 表示と合わせる（2.0 だと判定が逆転しやすい）
+  kc_mult: 1.5
 
 atr_context:
   percentile_bars: 100        # 4H ATR を過去この本数の中で位置づける
