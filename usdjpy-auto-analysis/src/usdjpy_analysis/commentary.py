@@ -402,8 +402,25 @@ def _date_label(result: dict) -> str:
         return at[:10]
 
 
+def _verdict(result: dict) -> dict | None:
+    v = (result.get("changes") or {}).get("verdict")
+    return v if isinstance(v, dict) and (v.get("up") or v.get("down")) else None
+
+
 def _hook_short(result: dict, sc: dict, main: str | None) -> str:
-    """タイトル行に入れる短い争点：「158.00 が分かれ目」「157.70〜157.96 の往来」。"""
+    """タイトル行に入れる短い争点：朝は「158.00 が分かれ目」、夜は答え合わせ「朝の 158.00 は抜けず」。"""
+    v = _verdict(result)
+    if result.get("slot") == "evening" and v and v.get("main_side"):
+        m, up = v["main_side"], v["main"] == "up"
+        t = f"{m['trigger']:.2f}"
+        st = m["status"]
+        if st == "未発動":
+            return f"朝の {t} は{'抜けず' if up else '割れず'}"
+        if st == "発動":
+            return f"朝の {t} を{'抜けた' if up else '割った'}"
+        if st == "到達":
+            return f"朝の {t} を{'抜けて' if up else '割って'} {m['target']:.2f} に到達"
+        return f"朝の見立ては崩れ（{m['invalid']:.2f} {'割れ' if up else '超え'}）"
     if main in ("up", "down"):
         s = sc["up"] if main == "up" else sc["down"]
         if s.get("trigger"):
@@ -501,6 +518,39 @@ def _reason_line(result: dict, label: str) -> str:
     return f"▼判断の根拠：{ema_txt}、主要な高値安値は「{d['structure']}」で相場環境は「{label}」"
 
 
+def _side_label(side: dict, up: bool) -> str:
+    t = f"{side['trigger']:.3f} 終値{'超え' if up else '割れ'}"
+    if side.get("target") is not None:
+        t += f" → {side['target']:.3f}"
+    return t
+
+
+def _answer_lines(result: dict) -> list[str]:
+    """✅ 答え合わせ。夜は「朝のプラン」を 2〜3 行、朝は「昨夜のプラン」を 1 行。前回の結果（台帳）が無ければ出ない。"""
+    v = _verdict(result)
+    if not v:
+        return []
+    up_first = v.get("main") != "down"
+    sides = [("up", True), ("down", False)] if up_first else [("down", False), ("up", True)]
+    names = {"up": "メイン" if v.get("main") == "up" else ("サブ" if v.get("main") == "down" else "上方向"),
+             "down": "メイン" if v.get("main") == "down" else ("サブ" if v.get("main") == "up" else "下方向")}
+    if result.get("slot") == "evening":
+        out = ["✅ 朝のプランの答え合わせ"]
+        for k, up in sides:
+            sd = v.get(k)
+            if sd:
+                out.append(f"{names[k]}（{_side_label(sd, up)}）：{sd['status']}。{sd['detail']}")
+        chg = result.get("changes") or {}
+        rx = [r for r in chg.get("reactions", []) if "届いていません" not in r]
+        if rx:
+            out.append("→ " + "／".join(rx[:2]))
+        return out
+    # 朝：昨夜のプランを 1 行
+    bits = [f"{names[k]}{v[k]['status']}" for k, _ in sides if v.get(k)]
+    when = "昨夜" if v.get("prev_slot") == "evening" else "前回"
+    return [f"✅ {when}のプラン：" + "・".join(bits)] if bits else []
+
+
 def _post_blocks(result: dict, posting: dict, sc: dict, main: str | None, label: str, slot_label: str) -> dict[str, list[tuple[int, str]]]:
     """投稿の部品（(優先度, 行) の列）。並べ方は post_style／layout が決める。"""
     sym, tf, close = result["symbol"], result["timeframe_label"], result["close"]
@@ -512,6 +562,7 @@ def _post_blocks(result: dict, posting: dict, sc: dict, main: str | None, label:
     B: dict[str, list[tuple[int, str]]] = {}
 
     B["title"] = [(0, t) for t in _title_lines(result, posting, sc, main, label, slot_label)]
+    B["answer"] = [(0, t) for t in _answer_lines(result)]
 
     env = f"▼相場環境：{_ema_short(result)}。{tr['details']['structure']}"
     if tr.get("label_effective") and tr["label_effective"] != tr["label"]:
@@ -624,9 +675,9 @@ def _long_post(result: dict, posting: dict, sc: dict, main: str | None, label: s
     B = _post_blocks(result, posting, sc, main, label, slot_label)
     layout = str(posting.get("layout", "scenario_first"))
     if layout == "classic":
-        order = ["title", _SEP, "env", "structure", "daily", "levels", "channel", "rsi", "sqzmom", "atr", _SEP, "zones", _SEP, "scenario", _SEP, "disclaimer", "tags"]
+        order = ["title", _SEP, "answer", _SEP, "env", "structure", "daily", "levels", "channel", "rsi", "sqzmom", "atr", _SEP, "zones", _SEP, "scenario", _SEP, "disclaimer", "tags"]
     else:   # scenario_first（リサーチ第 2 案）：分かれ目 → シナリオ → 注目帯 → 環境・構造・日足 → 線と指標 → 根拠 → 免責
-        order = ["title", _SEP, "scenario", _SEP, "zones", _SEP, "env", "structure", "daily", "levels", "channel", "rsi", "sqzmom", "atr", _SEP, "reason", "next", _SEP, "disclaimer", "tags"]
+        order = ["title", _SEP, "answer", _SEP, "scenario", _SEP, "zones", _SEP, "env", "structure", "daily", "levels", "channel", "rsi", "sqzmom", "atr", _SEP, "reason", "next", _SEP, "disclaimer", "tags"]
     out: list[tuple[int, str]] = []
     for k in order:
         out += k if isinstance(k, list) else B[k]
@@ -637,7 +688,7 @@ def _thread_post(result: dict, posting: dict, sc: dict, main: str | None, label:
     """リサーチ第 1 案：短い本体＋返信 2 投。本体だけ読んでも、返信まで読んでも成立する。"""
     B = _post_blocks(result, posting, sc, main, label, slot_label)
     zf = ([(1, "▼見ている水準（上下 1 本ずつ）")] + B["zones_first"]) if B["zones_first"] else []
-    body = B["title"] + _SEP + zf + _SEP + B["scenario"] + _SEP + B["reason"] + B["next"] + _SEP + B["disclaimer_short"] + B["tags"]
+    body = B["title"] + _SEP + B["answer"] + _SEP + zf + _SEP + B["scenario"] + _SEP + B["reason"] + B["next"] + _SEP + B["disclaimer_short"] + B["tags"]
     r1 = [(0, "▼補足①（環境・構造・日足）")] + B["env"] + B["structure"] + B["daily"] + B["channel"]
     r2 = [(0, "▼補足②（線と指標）")] + B["levels"] + B["rsi"] + B["sqzmom"] + B["atr"] + ([(1, "2 番目の注目帯：" + "／".join(t for _, t in B["zones_second"]))] if B["zones_second"] else [])
     return body, [r1, r2]
@@ -667,9 +718,15 @@ def build(result: dict, posting: dict | None = None) -> dict:
         pdsum = _prev_day_summary(result)
         if pdsum:
             lines.append("■ 前日の総括　" + pdsum)
+        al = _answer_lines(result)
+        if al:
+            lines.append("■ " + al[0].lstrip("✅ "))
         if chg.get("available") and chg.get("reactions"):
             lines.append("■ 前回の注目帯への反応　" + "／".join(chg["reactions"]))
     else:
+        al = _answer_lines(result)
+        if al:
+            lines.append("■ 朝のプランの答え合わせ　" + "\n".join(al[1:]))
         if chg.get("available"):
             body = "／".join(chg.get("lines", [])) or "大きな変化はありません。"
             lines.append("■ 前回からの変化点　" + body)

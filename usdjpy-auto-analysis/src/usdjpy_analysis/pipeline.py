@@ -400,6 +400,9 @@ def analyze(df: pd.DataFrame, cfg: dict, tf: str = "4h", df_daily: pd.DataFrame 
         prev_last = pd.Timestamp(prev["last_bar_utc"])
         recent = df_conf[df_conf.index > prev_last]
         result["changes"] = ledger.changes_since(prev, result, recent, reach_tol=atr_now * float(tol_cfg.get("reach_atr", 0.3)), pip=pip)
+        # 答え合わせ（前回のシナリオを、前回より後の確定足で判定。朝は「昨夜のプラン」、夜は「朝のプラン」）
+        if bool(cfg.get("posting", {}).get("answer_check", True)):
+            result["changes"]["verdict"] = ledger.judge_scenarios(prev, recent, reach_tol=atr_now * float(tol_cfg.get("reach_atr", 0.3)))
     else:
         result["changes"] = {"available": False, "lines": [why_not] if why_not else [], "reactions": []}
     result["commentary"] = commentary.build(result, cfg.get("posting", {}))

@@ -31,7 +31,20 @@ def summary_of(result: dict) -> dict:
         "supports": [round(l["price"], 3) for l in result["supports"]],
         "resistances": [round(l["price"], 3) for l in result["resistances"]],
         "scenario_main": (result.get("scenarios") or {}).get("main_text"),
+        "scenarios": _scenario_summary(result.get("scenarios") or {}),
+        "post_id": result.get("post_id"),          # X の投稿 ID（投稿プログラムが書く。夜は朝の投稿を引用するのに使う）
     }
+
+
+def _scenario_summary(sc: dict) -> dict:
+    """答え合わせに要る数字だけ：方向ごとの発動価格・行き先・崩れる価格。"""
+    def side(s: dict | None) -> dict | None:
+        if not s or not s.get("trigger"):
+            return None
+        return {"trigger": round(float(s["trigger"]["price"]), 3),
+                "target": round(float(s["target"]["price"]), 3) if s.get("target") else None,
+                "invalid": round(float(s["invalid"]["price"]), 3) if s.get("invalid") else None}
+    return {"main": sc.get("main"), "up": side(sc.get("up")), "down": side(sc.get("down"))}
 
 
 def load_last(state_dir: Path) -> dict | None:
@@ -113,3 +126,58 @@ def changes_since(prev: dict | None, result: dict, df_recent, *, reach_tol: floa
         if not out["reactions"] and (prev.get("zones_above") or prev.get("zones_below")):
             out["reactions"].append("前回の注目帯にはまだ届いていません。")
     return out
+
+
+# ---------------------------------------------------------------- 答え合わせ（2026-10-05・リサーチ 7-2）
+
+def judge_side(side: dict | None, df_recent, *, up: bool, reach_tol: float) -> dict | None:
+    """前回のシナリオ 1 方向を、前回より後の確定足で判定する。
+    未発動 … 発動価格を終値で抜けていない（崩れもしていない）
+    発動   … 発動価格を終値で抜けた（上なら超え、下なら割れ）
+    到達   … 発動のあと、行き先に reach_tol 以内まで届いた
+    無効化 … 発動する前に崩れる条件を終値で満たした（発動後に崩れた場合は「発動→崩れ」）"""
+    if not side or side.get("trigger") is None:
+        return None
+    trig, tgt, inv = side["trigger"], side.get("target"), side.get("invalid")
+    status, detail = "未発動", ""
+    if df_recent is None or len(df_recent) == 0:
+        return {"status": status, "trigger": trig, "target": tgt, "invalid": inv, "detail": "新しい確定足なし"}
+    h = df_recent["high"].to_numpy(dtype=float)
+    l = df_recent["low"].to_numpy(dtype=float)
+    c = df_recent["close"].to_numpy(dtype=float)
+    for i in range(len(c)):
+        if status == "未発動":
+            if inv is not None and ((up and c[i] < inv) or ((not up) and c[i] > inv)):
+                status, detail = "無効化", f"終値 {c[i]:.3f} で崩れる条件 {inv:.3f} を{'割れ' if up else '超え'}"
+                break
+            if (up and c[i] > trig) or ((not up) and c[i] < trig):
+                status, detail = "発動", f"終値 {c[i]:.3f} で {trig:.3f} を{'超え' if up else '割れ'}"
+        elif status == "発動":
+            if tgt is not None and ((up and h[i] >= tgt - reach_tol) or ((not up) and l[i] <= tgt + reach_tol)):
+                status, detail = "到達", f"行き先 {tgt:.3f} に到達（{'高値' if up else '安値'} {(h[i] if up else l[i]):.3f}）"
+                break
+            if inv is not None and ((up and c[i] < inv) or ((not up) and c[i] > inv)):
+                status, detail = "発動→崩れ", f"発動のあと終値 {c[i]:.3f} で崩れる条件 {inv:.3f} を{'割れ' if up else '超え'}"
+                break
+    if status == "未発動":
+        ext = float(np.max(h)) if up else float(np.min(l))
+        detail = f"{'高値' if up else '安値'} {ext:.3f} まで（発動価格 {trig:.3f} は終値で{'超えず' if up else '割れず'}）"
+    return {"status": status, "trigger": trig, "target": tgt, "invalid": inv, "detail": detail}
+
+
+def judge_scenarios(prev: dict | None, df_recent, *, reach_tol: float) -> dict | None:
+    """前回の朝（または前回）のシナリオを答え合わせする。prev に scenarios が無ければ None。"""
+    if not prev or not isinstance(prev.get("scenarios"), dict):
+        return None
+    sc = prev["scenarios"]
+    main = sc.get("main")
+    out = {"main": main, "prev_slot": prev.get("slot"), "prev_at": prev.get("analyzed_at_jst"), "prev_post_id": prev.get("post_id"),
+           "up": judge_side(sc.get("up"), df_recent, up=True, reach_tol=reach_tol),
+           "down": judge_side(sc.get("down"), df_recent, up=False, reach_tol=reach_tol)}
+    if main in ("up", "down"):
+        out["main_side"] = out[main]
+        out["sub_side"] = out["down" if main == "up" else "up"]
+    else:
+        out["main_side"] = out["sub_side"] = None
+    return out
+

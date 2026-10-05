@@ -290,4 +290,47 @@ def test_post_long_and_short_styles_and_priority_trim():
     assert short_post["x_units"] <= 280 < long_post["x_units"]
     for head in ("▼相場環境", "▼構造（ダウ理論）", "▼注目価格帯", "▼シナリオ", "※テクニカル分析の参考情報"):
         assert head in long_post["post"]
-    assert long_post["post"].rstrip().splitlines()[-1].count("#") == 10
+    assert long_post["post"].rstrip().splitlines()[-1].count("#") == len(cfg["posting"]["hashtags"])
+    # thread：本体＋返信 2 投。本体に分かれ目・シナリオ・根拠、返信に環境と線
+    th = commentary.build(res, dict(cfg["posting"], post_style="thread"))
+    assert len(th["post_replies"]) == 2 and all(u <= cfg["posting"]["reply_max_units"] for u in th["reply_units"])
+    assert "▼シナリオ" in th["post"] and "▼判断の根拠" in th["post"] and "▼相場環境" in th["post_replies"][0] and "▼サポート" in th["post_replies"][1]
+    assert th["post"].splitlines()[0].endswith("が分かれ目")
+
+
+def test_answer_check_judge_and_evening_post(tmp_path):
+    from usdjpy_analysis import ledger, commentary
+    idx = pd.date_range("2026-10-01 01:00", periods=4, freq="4h", tz="UTC")
+    def bars(closes, highs, lows):
+        return pd.DataFrame({"open": closes, "high": highs, "low": lows, "close": closes, "volume": 0.0}, index=idx)
+    side = {"trigger": 158.0, "target": 159.0, "invalid": 156.8}
+    # 未発動：終値が 158.0 を超えない
+    r = ledger.judge_side(side, bars([157.5, 157.9, 157.8, 157.7], [157.9, 158.05, 157.9, 157.8], [157.3, 157.6, 157.5, 157.4]), up=True, reach_tol=0.15)
+    assert r["status"] == "未発動" and "超えず" in r["detail"]
+    # 発動 → 到達
+    r = ledger.judge_side(side, bars([157.5, 158.2, 158.6, 158.7], [157.9, 158.3, 158.9, 158.8], [157.3, 157.9, 158.2, 158.4]), up=True, reach_tol=0.15)
+    assert r["status"] == "到達"
+    # 発動する前に崩れ
+    r = ledger.judge_side(side, bars([157.5, 156.7, 157.0, 158.2], [157.9, 157.2, 157.3, 158.3], [157.3, 156.5, 156.8, 157.9]), up=True, reach_tol=0.15)
+    assert r["status"] == "無効化"
+    # 下方向：割れ → 到達
+    dn = {"trigger": 157.5, "target": 156.9, "invalid": 158.0}
+    r = ledger.judge_side(dn, bars([157.6, 157.4, 157.1, 157.0], [157.8, 157.6, 157.3, 157.2], [157.4, 157.2, 156.95, 156.9]), up=False, reach_tol=0.1)
+    assert r["status"] == "到達"
+    # 通し：金曜 10:05 の朝 → 同日 20:05 の夜。夜の投稿に ✅ 答え合わせ、1 行目に「朝の …」
+    if not DATA_4H.exists():
+        return
+    cfg = pipeline.load_config(CFG)
+    df = market_data.load_csv(DATA_4H); dfd = market_data.load_csv(DATA_1D)
+    m = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=datetime(2026, 10, 2, 10, 5, tzinfo=JST), slot="morning", source="csv")
+    prev = ledger.load_last(tmp_path / "state")
+    assert prev and prev["scenarios"]["up"]["trigger"] and prev["slot"] == "morning"
+    e = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=datetime(2026, 10, 2, 20, 5, tzinfo=JST), slot="evening", source="csv")
+    v = e["changes"]["verdict"]
+    assert v and v["up"]["status"] in {"未発動", "発動", "到達", "無効化", "発動→崩れ"}
+    post = e["commentary"]["post"]
+    assert "✅ 朝のプランの答え合わせ" in post and post.splitlines()[0].startswith("【今日のドル円】10/02(金) 夜の中間報告｜朝の ")
+    assert "■ 朝のプランの答え合わせ" in e["commentary"]["long"]
+    # 翌朝：昨夜のプランを 1 行
+    nm = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=datetime(2026, 10, 3, 10, 5, tzinfo=JST), slot="morning", source="csv")
+    assert "✅ 昨夜のプラン：" in nm["commentary"]["post"]
