@@ -1,0 +1,17 @@
+# X 投稿プログラムの設定（DRY RUN）。秘密鍵・トークンはここに書かない（環境変数で渡す）
+dry_run: true                 # true＝X に送らず「送信予定ファイル」を output/outbox に書くだけ。本番 ON は SHO 確認後
+outbox_dir: output/outbox     # 送信予定ファイル（.json＝機械用、.md＝人が読む用）の置き場
+schedule:                     # 定時（JST・平日）。実行時刻がどちらに近いかで朝／夜を決める
+  morning: "10:05"
+  evening: "20:05"
+  jitter_minutes: 5           # 本番では 0〜この分数だけ毎回ずらす（同じ時刻の連投を避ける。DRY RUN では予定時刻の表示だけ）
+  weekdays_only: true
+thread_delay_seconds: 20      # 本体 → 返信① → 返信② の間隔（本番）
+media:
+  attach_chart: true          # 本体に 4時間足の PNG を付ける
+  alt_text: true              # 画像の代替テキスト（ALT）を解析結果から自動生成
+credentials:                  # 本番で使う環境変数の名前（値は書かない）
+  api_key_env: X_API_KEY
+  api_secret_env: X_API_SECRET
+  access_token_env: X_ACCESS_TOKEN
+  access_secret_env: X_ACCESS_SECRET

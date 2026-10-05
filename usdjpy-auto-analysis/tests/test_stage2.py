@@ -334,3 +334,26 @@ def test_answer_check_judge_and_evening_post(tmp_path):
     # 翌朝：昨夜のプランを 1 行
     nm = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=datetime(2026, 10, 3, 10, 5, tzinfo=JST), slot="morning", source="csv")
     assert "✅ 昨夜のプラン：" in nm["commentary"]["post"]
+
+
+def test_x_publisher_plan_dry_run(tmp_path):
+    """送信予定（DRY RUN）：本体＋返信 2 投、画像と ALT、夜は朝の疑似投稿 ID を引用。X には送らない。"""
+    if not DATA_4H.exists():
+        return
+    sys.path.insert(0, str(HERE.parent))
+    from social import x_publisher
+    cfg = pipeline.load_config(CFG)
+    scfg = x_publisher.load_social_config(HERE.parent / "config" / "social.yaml")
+    assert scfg.get("dry_run") is True
+    df = market_data.load_csv(DATA_4H); dfd = market_data.load_csv(DATA_1D)
+    m = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=datetime(2026, 10, 2, 10, 5, tzinfo=JST), slot="morning", source="csv")
+    plan = x_publisher.write_plan(m, dict(scfg, outbox_dir="outbox"), tmp_path, cfg["posting"])
+    assert plan["dry_run"] and len(plan["posts"]) == 3 and plan["posts"][1]["in_reply_to"] == "seq:1" and plan["posts"][2]["in_reply_to"] == "seq:2"
+    assert plan["posts"][0]["media"] and "ドル円" not in plan["posts"][0]["media"][0]["alt"] or "USDJPY" in plan["posts"][0]["media"][0]["alt"]
+    assert Path(plan["files"]["md"]).exists() and Path(plan["files"]["json"]).exists()
+    pid = x_publisher.mark_posted_dry_run(tmp_path / "state", plan)
+    assert pid and pid.startswith("dryrun-")
+    e = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=datetime(2026, 10, 2, 20, 5, tzinfo=JST), slot="evening", source="csv")
+    plan2 = x_publisher.build_plan(e, scfg, cfg["posting"])
+    assert plan2["quote_morning"]["post_id"] == pid and plan2["posts"][0]["quote_of"] == pid
+    assert plan2["scheduled_at_jst"] == "2026-10-02 20:05"

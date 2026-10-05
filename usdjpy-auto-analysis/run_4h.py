@@ -18,6 +18,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "src"))
+sys.path.insert(0, str(HERE))
 
 from usdjpy_analysis import market_data, pipeline  # noqa: E402
 
@@ -35,6 +36,8 @@ def main() -> int:
                     help="morning=朝のプラン(10:05) / evening=中間報告(20:05) / auto=実行時刻で決める")
     ap.add_argument("--now", help="実行時刻を指定（例 '2026-10-03 20:05'、JST）。省略時は現在時刻")
     ap.add_argument("--no-ledger", action="store_true", help="前回結果（output/state）を読まない・書かない")
+    ap.add_argument("--social", default=str(HERE / "config" / "social.yaml"), help="X 投稿プログラムの設定（DRY RUN）")
+    ap.add_argument("--no-plan", action="store_true", help="送信予定ファイル（output/outbox）を書かない")
     args = ap.parse_args()
 
     cfg = pipeline.load_config(args.config)
@@ -93,6 +96,16 @@ def main() -> int:
     print("保存先:")
     for k, v in result["files"].items():
         print(f"  {k}: {v}")
+    # 送信予定（DRY RUN）。X には送らない。本番 ON は SHO 確認後
+    if not args.no_plan:
+        from social import x_publisher
+        scfg = x_publisher.load_social_config(args.social)
+        plan = x_publisher.write_plan(result, scfg, HERE, cfg.get("posting", {}))
+        print(f"  送信予定: {plan['files']['md']}")
+        if scfg.get("dry_run", True) and not args.no_ledger and source != "sample":
+            pid = x_publisher.mark_posted_dry_run(Path(args.out) / "state", plan)
+            if pid:
+                print(f"  （DRY RUN の疑似投稿 ID {pid} を台帳に書き戻し。夜の引用の確認用）")
     return 0
 
 

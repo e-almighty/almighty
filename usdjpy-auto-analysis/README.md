@@ -33,7 +33,7 @@ python -m pytest tests -q                                             # テス�
 
 結果は `output/` に 3 つ出る：`USDJPY_4h_YYYYMMDD_HHMM.png`（画像）、`.md`（解説・シナリオ表・根拠・X 投稿案）、`.json`（数値）。
 前回の結果は `output/state/last_result.json` と `output/ledger.csv` に残り、次回の「変化点」「前回の注目帯への反応」に使う（`--no-ledger` で無効）。
-**X への投稿はしない（DRY RUN）。** 投稿部分は STEP 7 で X速報bot から流用して足す。
+**X への投稿はしない（DRY RUN）。** 実行のたびに `output/outbox/` に「送信予定」（`…_送信予定.md`＝人が読む用、`.json`＝機械用）を書く。中身は 本体（画像＋ALT）→ 返信① → 返信② と、夜なら「朝の投稿の引用」。設定は `config/social.yaml`（`dry_run: true` のまま。本番 ON は SHO 確認後。鍵は環境変数 `X_API_KEY` などで渡し、ファイルには書かない）。`--no-plan` で書かない。
 
 ## CSV の形
 
@@ -66,6 +66,7 @@ TradingView MCP の `mcp-tv-get-ohlcv` の出力をそのまま：列 `t,o,h,l,c
 | `src/usdjpy_analysis/chart.py` | 投稿用 PNG（mplfinance） |
 | `src/usdjpy_analysis/commentary.py` | 日本語解説と X 投稿案（ルールベース。AI で磨くのは後） |
 | `src/usdjpy_analysis/pipeline.py` | 上を順につなぐ。`analyze()` と `run()` |
+| `social/x_publisher.py` | X 投稿プログラム（DRY RUN）。送信予定の組み立て・ALT・疑似投稿 ID の台帳書き戻し。本番送信は未実装 |
 | `run_4h.py` | 4時間足の入口 |
 
 ## 正本の場所
