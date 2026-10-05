@@ -139,12 +139,17 @@ posting:                      # 投稿の型
   morning_slot_hour_end: 15   # この時（JST）より前の実行は「朝のプラン」、以降は「中間報告」（--slot auto）
   x_max_units: 1650           # X の文字数上限（全角 2・半角 1 で数える）。SHO はブルー認証なので 280 にこだわらず、
                               # 「短い形の約 4 倍・ほどほど」（2026-10-04）→ 目安 1,300〜1,600、上限 1,650（タイトル 4 行＋本文＋ハッシュタグ 10 個）。超えたら優先度の低い行から落とす
-  post_style: long            # long＝相場環境・構造・日足・線・RSI・SQZMOM・注目帯・シナリオ・免責／short＝6 行の短い形（280 向け）
+  post_style: long            # long＝1 本の長文（並びは layout）／thread＝短い本体＋返信 2 投（リサーチ第 1 案）／short＝6 行の短い形（280 向け）
+  layout: scenario_first      # long の並び：scenario_first＝分かれ目→シナリオ→注目帯→環境…→根拠（リサーチ第 2 案）／classic＝環境→構造→…→シナリオ（2026-10-04 夜の最初の形）
+  reply_max_units: 1000       # thread の返信 1 投あたりの上限
   title:                      # 投稿の頭（SHO 2026-10-04「タイトル → チャート → 説明」。難しい言葉より「今日のドル円」）
-    morning: "【今日のドル円】{date} 朝のプラン"      # {date}=10/04(土)・{slot}・{symbol}・{timeframe} が使える
-    evening: "【今日のドル円】{date} 夜の中間報告"
+    morning: "【今日のドル円】{date} 朝のプラン｜{hook_short}"   # {date}=10/04(日)・{hook_short}=158.00 が分かれ目・{slot}・{symbol}・{timeframe}
+    evening: "【今日のドル円】{date} 夜の中間報告｜{hook_short}"
     tagline: "ドル円だけを毎日2回、確定足で機械的に分析"   # 2 行目の一言。空文字 "" で消える
     hook: true                # 🔑 結論 1 行（どこを抜けたら・割ったらどうなるか）を 📊 の次に出す
+  next_note:                  # 本文末の「次の投稿」案内（空にすると出ない）
+    morning: "→ 20:05 に同じチャートで答え合わせします"
+    evening: ""
   hashtags:                   # 10 個（SHO 2026-10-04「刺さりそうなものを 10 個」）。並び順＝検索されやすい順。文字列 1 本でも可
     - "#ドル円"
     - "#USDJPY"

@@ -82,6 +82,9 @@ def main() -> int:
     print()
     print(f"=== X投稿案（未投稿・{result['commentary']['x_units']} 単位） ===")
     print(result["commentary"]["post"])
+    for i, (r, u) in enumerate(zip(result["commentary"].get("post_replies") or [], result["commentary"].get("reply_units") or [])):
+        print(f"--- 返信 {i + 1}（{u} 単位） ---")
+        print(r)
     if result["commentary"].get("safety_hits"):
         print("（表現チェックで見つかった語：", ", ".join(result["commentary"]["safety_hits"]), "）")
     if result["commentary"].get("post_over_limit"):

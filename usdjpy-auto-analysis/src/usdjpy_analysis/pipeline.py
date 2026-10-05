@@ -439,7 +439,8 @@ def run(df: pd.DataFrame, cfg: dict, out_dir: str | Path, tf: str = "4h",
         f"![chart]({png.name})\n\n## 解説\n\n{cm['long']}\n\n"
         f"## シナリオ表\n\n{cm['table']}\n\n"
         f"## 根拠（線 1 本ごと）\n\n{evidence}\n\n"
-        f"## X投稿案（DRY RUN・未投稿）\n\n```\n{cm['post']}\n```\n\n"
+        f"## X投稿案（DRY RUN・未投稿・{cm.get('post_style', 'short')}・{cm.get('x_units', 0)} 単位）\n\n```\n{cm['post']}\n```\n\n"
+        + "".join(f"### 返信 {i + 1}（{u} 単位）\n\n```\n{r}\n```\n\n" for i, (r, u) in enumerate(zip(cm.get("post_replies") or [], cm.get("reply_units") or [])))
         + (f"## 表現チェック\n\n見つかった語：{', '.join(cm['safety_hits'])}\n" if cm.get("safety_hits") else "")
         + ("## 注意\n\nX 投稿案が文字数上限を超えています。短くしてから投稿してください。\n" if cm.get("post_over_limit") else ""),
         encoding="utf-8")
