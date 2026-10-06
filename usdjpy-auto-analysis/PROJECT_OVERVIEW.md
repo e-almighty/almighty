@@ -7,9 +7,9 @@ tags:
   - 自動分析
   - X投稿
 created: 2026-10-03
-updated: 2026-10-05
+updated: 2026-10-06
 通貨ペア: USDJPY
-次の一手: X投稿部分（DRY RUN。本体→返信2投、夜は朝の投稿を引用）を作る（APIキーはSHOが取得）。画像のタイトル帯・日足2枚目。プロフィール文は再相談。1時間足へ展開
+次の一手: X投稿プログラムの本番送信部分（X API v2。SHOのAPIキー取得後）。画像のタイトル帯・🔑の焼き込み・日足2枚目。調査ノート4-2の反映。B群 → 1時間足
 ---
 
 # USDJPY 自動テクニカル分析・チャート投稿システム
@@ -19,14 +19,14 @@ updated: 2026-10-05
 
 依頼者：SHO ／ 引き継ぎメモ：2026-10-03 ／ 作業：Claude Code
 
-## 現在の状態（2026-10-04・第2ステージ 4時間足を仕上げた時点）
+## 現在の状態（2026-10-06・セーブポイント：X 投稿プログラム DRY RUN まで）
 
 - **STEP 1 完了**：既存資産の棚卸しと TradingView 公式 MCP の確認 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/STEP1_報告_2026-10-03|STEP 1 報告]]
 - **STEP 2 完了**：4時間足のパイプライン（データ → スイング → サポレジ → 相場環境 → チャネル → PNG → 解説）。本物のドル円 CSV で実行し SHO に提示済み → [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-03_初回|初回結果]]
 - **STEP 3 進行中**：SHO ヒアリングで決まったこと（EMA 20/50/200・平行チャネル＋中央線・サポート赤／レジスタンス緑・フィボ必須・RSI ダイバージェンス・SQZMOM は文章のみ・1 日 2 回 10:05／20:05）を反映。**第2ステージ（2026-10-04）**：確定足の一元管理、主要スイングとダウ理論（押し安値）、フィボナッチ、RSI サブパネルとダイバージェンス、SQZMOM・ATR の文章、注目価格帯（根拠の重なり）、シナリオ表、朝のプラン／中間報告、台帳、表現の安全弁 → [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-04_第2ステージ_朝のプラン|第2ステージの出力例]]。ルールは [[03_PROJECTS/USDJPY_Auto_Analysis/docs/ANALYSIS_RULES|ANALYSIS_RULES]] 8〜15 節
 - **解析の追加提案**（4 視点の案出し → 査読 → 統合）→ [[03_PROJECTS/USDJPY_Auto_Analysis/docs/解析の追加提案_2026-10-04|解析の追加提案]]。A 群（すぐ入れる）は第2ステージで実装済み、B 群（ブレイク判定・ADX・EMA 乖離・レンジ処理・ローソク足パターン）と C 群（1H・5M・MTF・セッション・答え合わせの集計）は未着手
 - **有名トレーダーの手法調査**（小次郎講師・神藤さん・維新の介さん・石井信介さん・国内外）：完了 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/有名トレーダーの手法調査_2026-10-04|有名トレーダーの手法調査]]。人物 3 名を特定（石井信介さんは未特定）、手法 92 件中 72 件を裏取り。次は 4-2 の優先順で解説文に反映
-- **X 自動投稿**：平日 10:05（朝のプラン）と 20:05（中間報告）の 1 日 2 回で決定。投稿文は「タイトル【今日のドル円】→ チャート → 説明」。**SHO 決定（2026-10-05）：第 1 案 thread（短い本体＋返信 2 投）・ハッシュタグ 2 個・10:05／20:05・夜は ✅ 答え合わせ＋朝の投稿を引用**（ANALYSIS_RULES 16 節。個人名は出さない）。出し方のリサーチと提案 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X発信リサーチ_2026-10-04|X 発信リサーチ]]（2026-10-05）。進め方は [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X自動投稿の進め方|X自動投稿の進め方]]。SHO は X の API キーをまだ持っていない（取得待ち）。投稿プログラムは DRY RUN から
+- **X 自動投稿**：平日 10:05（朝のプラン）と 20:05（中間報告）の 1 日 2 回で決定。投稿文は「タイトル【今日のドル円】→ チャート → 説明」。**SHO 決定（2026-10-05）：第 1 案 thread（短い本体＋返信 2 投）・ハッシュタグ 2 個・10:05／20:05・夜は ✅ 答え合わせ＋朝の投稿を引用**（ANALYSIS_RULES 16 節。個人名は出さない）。出し方のリサーチと提案 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X発信リサーチ_2026-10-04|X 発信リサーチ]]（2026-10-05）。進め方は [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X自動投稿の進め方|X自動投稿の進め方]]。SHO は X の API キーをまだ持っていない（取得待ち）。**X 投稿プログラム（DRY RUN）は完成**（2026-10-06）：`social/x_publisher.py`＋`config/social.yaml`。実行のたびに `output/outbox/` に送信予定（本体＋画像＋ALT → 返信① → 返信②、夜は朝の投稿を引用）を書く。X には送らない。本番送信部分は未実装。プロフィール文は **案 A で決定**（2026-10-05）→ [[03_PROJECTS/USDJPY_Auto_Analysis/docs/Xプロフィール_2026-10-05|X プロフィール]]（表示名・固定ポストは SHO 待ち）
 - 作業の詳細 → [[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-03|作業ログ 2026-10-03]]／[[03_PROJECTS/USDJPY_Auto_Analysis/docs/作業ログ_2026-10-04|作業ログ 2026-10-04]]
 
 ## 役割分担（決定事項）
@@ -51,7 +51,9 @@ updated: 2026-10-05
   docs/                 STEP1_報告・ANALYSIS_RULES（線の引き方）・X自動投稿の進め方・作業ログ
   config/analysis.yaml  設定値（Pivot期間・ATR・ライン本数など。コードに埋め込まない）
   src/usdjpy_analysis/  Python 本体（market_data / indicators / swings / levels / trend / trendlines / channels / bars / structure / fibonacci / divergence / momentum / zones / safety / ledger / chart / commentary / pipeline）
-  run_4h.py             4時間足の実行入口（DRY RUN）
+  config/social.yaml    X 投稿の設定（dry_run・予定時刻・鍵の環境変数名だけ）
+  social/x_publisher.py X 投稿プログラム（今は DRY RUN：output/outbox に送信予定を書くだけ）
+  run_4h.py             4時間足の実行入口（解析 → 画像 → 解説 → 送信予定）
   tests/                動作テストと架空データ
   data/                 ローソク足 CSV（USDJPY_4H.csv 1000本・USDJPY_1D.csv 400本。2026-10-03 TradingView から書き出し）
   output/               解説 md（画像 PNG は PC で実行すると同じ場所にできる）
@@ -90,10 +92,17 @@ updated: 2026-10-05
 - SHO の感想を受けて線のルールと設定を調整し、作り直す
 - 有名トレーダー手法の調査結果を docs に保存し、解説文の言い回し・判定に反映する
 - 解析の追加提案の B 群（ブレイク・ダマシ・リテストの 6 区分、ADX、EMA 乖離、レンジ専用処理、ローソク足パターン）
-- `social/x_publisher.py`・`config/social.yaml`・定時実行バッチ・タスク スケジューラ手順（DRY RUN）
+- X 投稿プログラムの本番送信部分（X API v2：画像アップロード → 本体 → 返信 → 引用）、定時実行バッチ・タスク スケジューラ手順。SHO の API キー取得後、最初は DRY RUN のまま
 - PC で `python run_4h.py --gmo` が動くか確認（GMOコイン klines は未検証）
 - 線のルール確定後に `pine/USDJPY_4H_Analyzer.pine`
 - 前日高値・安値をラインに加える案（ANALYSIS_RULES の「確認したいこと」）
+
+## 最新のセーブポイント（2026-10-06）
+
+- **どこまで**：第2ステージ（4時間足の解析・画像・解説）＋ X 投稿の型（thread・ハッシュタグ 2 個・答え合わせ）＋ X 投稿プログラム DRY RUN（送信予定ファイル）まで。テスト 20 件合格
+- **正本**：この Vault フォルダ（Dropbox）。GitHub は `e-almighty/almighty` ブランチ `claude/nice-sagan-kgqry5` の `usdjpy-auto-analysis/`（DRY RUN 完成のコミットは `501db2b`、その次がこのセーブポイント）
+- **別のパソコンで再開するとき**：[[03_PROJECTS/USDJPY_Auto_Analysis/docs/再開のしかた_合言葉|再開のしかた・合言葉]] の「別のパソコンで続きをやる手順」のとおり。合言葉は「ドル円自動分析の続き」
+- **SHO 待ち**：X の API キー、表示名・固定ポスト・タグラインの文言、プロフィール画像（GPT に相談中）、第2ステージの画像・文章への感想
 
 ## セーブの約束
 
@@ -108,6 +117,8 @@ Vault が正本（Dropbox で全 PC に同期）。GitHub は履歴用：`e-almi
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/解析の追加提案_2026-10-04|解析の追加提案 2026-10-04]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/有名トレーダーの手法調査_2026-10-04|有名トレーダーの手法調査 2026-10-04]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X発信リサーチ_2026-10-04|X 発信リサーチと出し方の提案 2026-10-04]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/Xプロフィール_2026-10-05|X プロフィール 2026-10-05]]
+- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/再開のしかた_合言葉|再開のしかた・合言葉]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/再開のしかた_合言葉|再開のしかた（合言葉）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-04_第2ステージ_朝のプラン|第2ステージの出力例（2026-10-04）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/STEP1_報告_2026-10-03|STEP 1 報告（棚卸し・MCP確認）]]
