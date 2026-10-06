@@ -118,7 +118,6 @@ Vault が正本（Dropbox で全 PC に同期）。GitHub は履歴用：`e-almi
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/有名トレーダーの手法調査_2026-10-04|有名トレーダーの手法調査 2026-10-04]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/X発信リサーチ_2026-10-04|X 発信リサーチと出し方の提案 2026-10-04]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/Xプロフィール_2026-10-05|X プロフィール 2026-10-05]]
-- [[03_PROJECTS/USDJPY_Auto_Analysis/docs/再開のしかた_合言葉|再開のしかた・合言葉]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/再開のしかた_合言葉|再開のしかた（合言葉）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/output/USDJPY_4h_2026-10-04_第2ステージ_朝のプラン|第2ステージの出力例（2026-10-04）]]
 - [[03_PROJECTS/USDJPY_Auto_Analysis/docs/STEP1_報告_2026-10-03|STEP 1 報告（棚卸し・MCP確認）]]
