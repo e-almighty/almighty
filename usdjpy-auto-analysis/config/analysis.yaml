@@ -47,6 +47,9 @@ output:
   image_width_px: 1600
   image_height_px: 900
   dpi: 100
+  daily_image: true              # 2 枚目：日足（EMA50・前週高安・押し安値だけ）。X には本体に 2 枚添付
+  daily_months: 6                # 日足に描く期間（か月）
+  daily_image_morning_only: true # 夜は朝と同じ日足なので作らない（リサーチ 9 章の 7）
 
 # 画像の見た目（SHO の指定・2026-10-04：サポート＝赤、レジスタンス＝緑、太くはっきり）
 chart:
@@ -65,7 +68,15 @@ chart:
   draw_fib: false                 # 主波のフィボ 38.2／50／61.8（金の細い破線）。fibonacci.enabled も true が必要
   draw_key_level: true            # 押し安値／戻り高値を点線で描く（ダウ理論の分かれ目）
   draw_prev_day: false            # 前日高安（灰の破線）。解説文には残る
-  draw_zones: false               # 注目価格帯の薄い帯。解説文には残る
+  draw_zones: true                # 注目価格帯の薄い帯（2026-10-07：上下 1 つずつだけに戻す。SHO が「多い」と言えば false）
+  zones_draw_each_side: 1         # 帯を上下いくつ描くか
+  # 画像の仕上げ（リサーチ 9 章の 6・7、SHO 2026-10-07「タイトルが刺さるように」）
+  title_band: true                # 上端の帯に投稿の 1 行目（【今日のドル円】… が分かれ目）を焼き込む
+  title_band_color: "#1f2a44"
+  footer_hook: true               # 最下段に 🔑 結論 1 行（絵文字の無いフォントでは「結論」の札）
+  footer_color: "#fff6d5"
+  draw_scenario_arrows: true      # メイン＝実線の矢印、サブ＝点線の矢印、崩れる価格＝赤の点線に短い文字
+  evening_overlay: true           # 夜：朝のプランの帯と、朝以降の実際の高値／安値を塗り足す
   draw_rsi_panel: true            # RSI をチャートの下に出し、ダイバージェンスの線を引く
   draw_divergence: true           # 価格側にもダイバージェンスの線を引く
   fib_color: "#c8a000"

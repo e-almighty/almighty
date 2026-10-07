@@ -877,7 +877,11 @@ def build(result: dict, posting: dict | None = None) -> dict:
         clean_replies.append(r2)
         hits += h
     hits = sorted(set(hits))
+    # 画像に焼き込む 2 行（リサーチ 9 章の 6：タイトル帯と 🔑 結論。投稿の 1 行目と同じ文言にして、画像だけ見ても結論が分かるようにする）
+    title_line, _ = safety.sanitize(_title_lines(result, posting, sc, main, label, slot_label)[0])
+    hook_line, _ = safety.sanitize(_hook(result, sc, main))
     return {"long": long_text, "table": table, "evidence": ev, "post": post_text, "post_replies": clean_replies,
             "post_style": style, "safety_hits": hits,
             "x_units": _x_units(post_text), "reply_units": [_x_units(r) for r in clean_replies],
-            "post_over_limit": _x_units(post_text) > max_units}
+            "post_over_limit": _x_units(post_text) > max_units,
+            "title_line": title_line, "hook": hook_line}

@@ -433,13 +433,21 @@ def run(df: pd.DataFrame, cfg: dict, out_dir: str | Path, tf: str = "4h",
                        width_px=int(ocfg.get("image_width_px", 1600)), height_px=int(ocfg.get("image_height_px", 900)),
                        dpi=int(ocfg.get("dpi", 100)), ema_fast=arrays["ema_fast"], ema_slow=arrays["ema_slow"],
                        ema_long=arrays["ema_long"], rsi=arrays["rsi"], style_cfg=cfg.get("chart"))
+    # 2 枚目：日足（EMA50・前週高安・押し安値だけ）。夜は朝と同じ日足なので省く（リサーチ 9 章の 7）
+    png_daily = None
+    if df_daily is not None and bool(ocfg.get("daily_image", True)) and not (result.get("slot") == "evening" and bool(ocfg.get("daily_image_morning_only", True))):
+        png_daily = chart.render_daily(df_daily, result, out_dir / f"{stem}_daily.png",
+                                       months=int(ocfg.get("daily_months", 6)), tz=cfg.get("timezone", "Asia/Tokyo"),
+                                       width_px=int(ocfg.get("image_width_px", 1600)), height_px=int(ocfg.get("image_height_px", 900)),
+                                       dpi=int(ocfg.get("dpi", 100)), ema_period=int(cfg["higher_timeframe"]["1D"]["ema"]),
+                                       style_cfg=cfg.get("chart"))
     md = out_dir / f"{stem}.md"
     cm = result["commentary"]
     evidence = "\n".join(f"- {e}" for e in cm.get("evidence", []))
     slot_label = "朝のプラン" if result["slot"] == "morning" else "中間報告"
     md.write_text(
         f"# {result['symbol']} {result['timeframe_label']} {slot_label}（{result['analyzed_at_jst']} JST）\n\n"
-        f"![chart]({png.name})\n\n## 解説\n\n{cm['long']}\n\n"
+        f"![chart]({png.name})\n\n" + (f"![daily]({png_daily.name})\n\n" if png_daily else "") + f"## 解説\n\n{cm['long']}\n\n"
         f"## シナリオ表\n\n{cm['table']}\n\n"
         f"## 根拠（線 1 本ごと）\n\n{evidence}\n\n"
         f"## X投稿案（DRY RUN・未投稿・{cm.get('post_style', 'short')}・{cm.get('x_units', 0)} 単位）\n\n```\n{cm['post']}\n```\n\n"
@@ -450,6 +458,8 @@ def run(df: pd.DataFrame, cfg: dict, out_dir: str | Path, tf: str = "4h",
     js = out_dir / f"{stem}.json"
     js.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=_json_default), encoding="utf-8")
     result["files"] = {"png": str(png), "md": str(md), "json": str(js)}
+    if png_daily:
+        result["files"]["png_daily"] = str(png_daily)
     if use_ledger:
         ledger.save(result, out_dir)
     return result

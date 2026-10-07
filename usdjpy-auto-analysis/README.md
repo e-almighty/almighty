@@ -6,7 +6,7 @@ tags:
   - USDJPY
   - 自動分析
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-07
 ---
 
 # USDJPY 自動分析 — 動かし方
@@ -31,9 +31,9 @@ python run_4h.py --gmo                                                # GMOコ�
 python -m pytest tests -q                                             # テスト（pip install pytest）
 ```
 
-結果は `output/` に 3 つ出る：`USDJPY_4h_YYYYMMDD_HHMM.png`（画像）、`.md`（解説・シナリオ表・根拠・X 投稿案）、`.json`（数値）。
+結果は `output/` に出る：`USDJPY_4h_YYYYMMDD_HHMM.png`（4時間足の画像。上にタイトル帯、下に結論、右端にシナリオの矢印）、朝だけ `…_daily.png`（2 枚目＝日足。EMA50・前週高安・押し安値）、`.md`（解説・シナリオ表・根拠・X 投稿案）、`.json`（数値）。
 前回の結果は `output/state/last_result.json` と `output/ledger.csv` に残り、次回の「変化点」「前回の注目帯への反応」に使う（`--no-ledger` で無効）。
-**X への投稿はしない（DRY RUN）。** 実行のたびに `output/outbox/` に「送信予定」（`…_送信予定.md`＝人が読む用、`.json`＝機械用）を書く。中身は 本体（画像＋ALT）→ 返信① → 返信② と、夜なら「朝の投稿の引用」。設定は `config/social.yaml`（`dry_run: true` のまま。本番 ON は SHO 確認後。鍵は環境変数 `X_API_KEY` などで渡し、ファイルには書かない）。`--no-plan` で書かない。
+**X への投稿はしない（DRY RUN）。** 実行のたびに `output/outbox/` に「送信予定」（`…_送信予定.md`＝人が読む用、`.json`＝機械用）を書く。中身は 本体（画像 2 枚＋ALT。夜は 1 枚）→ 返信① → 返信② と、夜なら「朝の投稿の引用」。設定は `config/social.yaml`（`dry_run: true` のまま。本番 ON は SHO 確認後。鍵は環境変数 `X_API_KEY` などで渡し、ファイルには書かない）。`--no-plan` で書かない。
 
 ## CSV の形
 

@@ -45,6 +45,22 @@ def alt_text(result: dict) -> str:
     return "。".join(bits) + "。サポートは赤、レジスタンスは緑、EMA200 は黒の線"
 
 
+def alt_text_daily(result: dict) -> str:
+    """2 枚目（日足）の代替テキスト。"""
+    dl = result.get("daily") or {}
+    ht = result.get("higher_timeframe") or {}
+    st = result.get("structure") or {}
+    bits = [f"{result['symbol']} 日足のチャート（約 6 か月）。現在値 {result['close']:.3f}"]
+    if ht.get("ema") is not None:
+        bits.append(f"日足 EMA{ht.get('ema_period', 50)} {ht['ema']:.3f} の{'上' if ht.get('above') else '下'}側")
+    pw = dl.get("prev_week") or {}
+    if pw.get("high") is not None and pw.get("low") is not None:
+        bits.append(f"前週高値 {pw['high']:.3f}・前週安値 {pw['low']:.3f}")
+    if st.get("key_level") is not None and st.get("direction") in ("up", "down"):
+        bits.append(f"4時間足の{'押し安値' if st['direction'] == 'up' else '戻り高値'} {st['key_level']:.3f}")
+    return "。".join(bits) + "。青は日足 EMA、灰の破線は前週高安、点線は押し安値"
+
+
 def scheduled_at(result: dict, scfg: dict) -> str:
     """予定時刻（JST）。解析日の朝／夜の定時。DRY RUN では表示用。"""
     sch = scfg.get("schedule") or {}
@@ -60,8 +76,11 @@ def build_plan(result: dict, scfg: dict, posting: dict | None = None) -> dict:
     posting = posting or {}
     files = result.get("files") or {}
     media = []
-    if (scfg.get("media") or {}).get("attach_chart", True) and files.get("png"):
-        media.append({"path": files["png"], "alt": alt_text(result) if (scfg.get("media") or {}).get("alt_text", True) else ""})
+    mcfg = scfg.get("media") or {}
+    if mcfg.get("attach_chart", True) and files.get("png"):
+        media.append({"path": files["png"], "alt": alt_text(result) if mcfg.get("alt_text", True) else ""})
+        if mcfg.get("attach_daily", True) and files.get("png_daily"):
+            media.append({"path": files["png_daily"], "alt": alt_text_daily(result) if mcfg.get("alt_text", True) else ""})
     posts = [{"seq": 1, "role": "body", "text": cm["post"], "units": cm.get("x_units", _x_units(cm["post"])),
               "media": media, "in_reply_to": None}]
     for i, (txt, u) in enumerate(zip(cm.get("post_replies") or [], cm.get("reply_units") or []), start=1):

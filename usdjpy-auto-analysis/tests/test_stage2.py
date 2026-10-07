@@ -350,6 +350,9 @@ def test_x_publisher_plan_dry_run(tmp_path):
     plan = x_publisher.write_plan(m, dict(scfg, outbox_dir="outbox"), tmp_path, cfg["posting"])
     assert plan["dry_run"] and len(plan["posts"]) == 3 and plan["posts"][1]["in_reply_to"] == "seq:1" and plan["posts"][2]["in_reply_to"] == "seq:2"
     assert plan["posts"][0]["media"] and "ドル円" not in plan["posts"][0]["media"][0]["alt"] or "USDJPY" in plan["posts"][0]["media"][0]["alt"]
+    # 朝は 4時間足＋日足の 2 枚（それぞれ ALT つき）。夜は日足を作らないので 1 枚
+    assert len(plan["posts"][0]["media"]) == 2 and Path(plan["posts"][0]["media"][1]["path"]).name.endswith("_daily.png")
+    assert "日足" in plan["posts"][0]["media"][1]["alt"] and "前週高値" in plan["posts"][0]["media"][1]["alt"]
     assert Path(plan["files"]["md"]).exists() and Path(plan["files"]["json"]).exists()
     pid = x_publisher.mark_posted_dry_run(tmp_path / "state", plan)
     assert pid and pid.startswith("dryrun-")
@@ -357,3 +360,28 @@ def test_x_publisher_plan_dry_run(tmp_path):
     plan2 = x_publisher.build_plan(e, scfg, cfg["posting"])
     assert plan2["quote_morning"]["post_id"] == pid and plan2["posts"][0]["quote_of"] == pid
     assert plan2["scheduled_at_jst"] == "2026-10-02 20:05"
+    assert len(plan2["posts"][0]["media"]) == 1 and "png_daily" not in e["files"]
+
+
+def test_image_finish_title_band_and_daily(tmp_path):
+    """画像の仕上げ（2026-10-07）：タイトル帯＝投稿の 1 行目、🔑 結論、日足の 2 枚目、夜は朝のプランの帯。設定で全部 OFF にもできる。"""
+    from usdjpy_analysis import chart
+    cfg = pipeline.load_config(CFG)
+    df = make_sample(400, seed=5)
+    dfd = market_data.resample(df, "1D")
+    now = (df.index[-1] + pd.Timedelta(hours=4)).to_pydatetime().astimezone(JST)
+    m = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=now, slot="morning", source="csv")
+    cm = m["commentary"]
+    assert cm["title_line"].startswith("【今日のドル円】") and cm["title_line"] == cm["post"].splitlines()[0]
+    assert "必ず" not in cm["hook"]
+    assert Path(m["files"]["png"]).exists() and Path(m["files"]["png_daily"]).exists()
+    e = pipeline.run(df, cfg, tmp_path, "4h", dfd, now=now, slot="evening", source="csv")
+    assert "png_daily" not in e["files"] and Path(e["files"]["png"]).exists()      # 夜は朝のプランの帯を塗り足した 4H 1 枚だけ
+    # 日足なし・帯なし・矢印なしでも落ちない（従来の見出しに戻る）
+    cfg2 = pipeline.load_config(CFG)
+    cfg2["chart"].update({"title_band": False, "footer_hook": False, "draw_scenario_arrows": False, "evening_overlay": False, "draw_zones": False})
+    cfg2["output"]["daily_image"] = False
+    r = pipeline.run(df, cfg2, tmp_path / "plain", "4h", None, now=now, slot="morning", source="csv")
+    assert Path(r["files"]["png"]).exists() and "png_daily" not in r["files"]
+    assert chart.render_daily(dfd.head(5), m, tmp_path / "x.png", tz="Asia/Tokyo") is None    # 日足が短すぎれば作らない
+    assert chart._wrap("あ" * 70, 62)[1].endswith("…") is False and len(chart._wrap("あ" * 70, 62)) == 2

@@ -9,6 +9,7 @@ schedule:                     # 定時（JST・平日）。実行時刻がどち
 thread_delay_seconds: 20      # 本体 → 返信① → 返信② の間隔（本番）
 media:
   attach_chart: true          # 本体に 4時間足の PNG を付ける
+  attach_daily: true          # 2 枚目（日足）も本体に添付
   alt_text: true              # 画像の代替テキスト（ALT）を解析結果から自動生成
 credentials:                  # 本番で使う環境変数の名前（値は書かない）
   api_key_env: X_API_KEY
