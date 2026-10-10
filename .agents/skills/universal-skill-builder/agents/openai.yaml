@@ -1,0 +1,7 @@
+interface:
+  display_name: "どこでもスキル工房"
+  short_description: "5環境で使えるスキルを作り、ObsidianとGitへ保存"
+  default_prompt: "$universal-skill-builder を使って、新しいスキルを作り、ObsidianとGitへ保存してください。"
+
+policy:
+  allow_implicit_invocation: true
