@@ -1,0 +1,7 @@
+interface:
+  display_name: "3行要約"
+  short_description: "入力文を元の内容に忠実な日本語の3行に要約する"
+  default_prompt: "$test-text-summary を使って、入力された文章を日本語の3行に要約してください。"
+
+policy:
+  allow_implicit_invocation: true
