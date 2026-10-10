@@ -1,0 +1,6 @@
+interface:
+  display_name: "このパソコンの詳細"
+  short_description: "「このパソコンの詳細」「発売時期を調べて」「スペックを教えて」で正確な型番・発売日・標準仕様・買い替え年数を確"
+  default_prompt: "$pc-details を使って依頼に対応してください。"
+policy:
+  allow_implicit_invocation: true
