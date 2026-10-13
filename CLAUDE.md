@@ -2,6 +2,13 @@
 
 ## 必ず日本語で答える
 
+## 保管庫（Obsidian Vault）の場所は1つだけ
+
+Almighty-AI-Brain の正本は Dropbox の **`/HIRATA/Obsidian/Almighty-AI-Brain`** のみ。
+スキル・メモリ・ルールを保存するときは必ずこの配下に置く。
+`/AIフォルダ/Almighty-AI-Brain` など別の場所に新しく作らない
+（2026-10-10 に別の AI が `/AIフォルダ/` に作ってしまい、10-13 に統合済み）。
+
 ## モデル案内ルール（最優先）
 
 ユーザーはモデル（Fable / Opus / Sonnet / Haiku）の使い分けが分からない。
