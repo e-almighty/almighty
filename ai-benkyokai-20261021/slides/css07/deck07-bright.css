@@ -1,0 +1,26 @@
+/* deck07-bright.css — 明るい地（水色×濃紺）用の上書き。deck07.css は無改変。
+   2026-08-15 エレコム案件で確定した配色（地 #CFE6F9 / 文字 #0A2A55）を 07 の骨組みに当てる。 */
+html,body{background:#DCE9F5}
+.xop-slide{background:#DCE9F5}
+.xop-canvas{background:#EEF5FC;box-shadow:0 0 0 1px rgba(10,42,85,.18)}
+.tone-paper .xop-canvas{background:#EEF5FC}
+.tone-white .xop-canvas{background:#FFFFFF}
+.tone-sky .xop-canvas{background:#CFE6F9}
+.sem-paper{background:#EEF5FC;color:#0A2A55}
+.sem-white{background:#FFFFFF;color:#0A2A55}
+.sem-sky{position:absolute;inset:0;overflow:hidden;color:#0A2A55;font-family:inherit;
+  background:radial-gradient(circle at 14% 10%,rgba(255,255,255,.75),transparent 34%),
+  radial-gradient(circle at 86% 84%,rgba(61,111,165,.22),transparent 38%),
+  linear-gradient(135deg,#DCEEFB 0%,#CFE6F9 50%,#B9D9F3 100%)}
+.corner-stripes{opacity:.55;background:repeating-linear-gradient(135deg,#0A2A55 0 10px,transparent 10px 20px)}
+.tone-sky .corner-stripes{opacity:.35}
+.brand-watermark{color:#0A2A55;opacity:.12}
+.tone-sky .brand-watermark{color:#0A2A55;opacity:.14}
+.hl{background:#FFC532;padding:0 12px;color:#0A2A55}
+.ug{background:linear-gradient(transparent 62%,#FFC532 62%);padding:0 .08em}
+.card-hard{background:#FFFFFF;border:3px solid #0A2A55;box-shadow:10px 10px 0 #0A2A55;border-radius:14px}
+.card-soft{background:#FFFFFF;border:2px solid #B9D3EA;box-shadow:0 14px 34px rgba(10,42,85,.10);border-radius:14px}
+.num{background:#0A2A55;color:#FFFFFF;width:54px;height:54px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:950;border-radius:10px}
+.pill{display:inline-block;padding:6px 18px;border-radius:999px;font-weight:900;font-size:22px}
+.deck-nav{opacity:0}
+.deck-nav:hover{opacity:1}
