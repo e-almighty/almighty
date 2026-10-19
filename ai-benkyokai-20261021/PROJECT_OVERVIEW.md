@@ -47,6 +47,44 @@ updated: 2026-10-20
 3. 当日までに大きな発表があれば 5・16・33 枚目の数字を見直す（数字は 2026-10-19 時点）
 4. 開催後：参加人数・反応・次回テーマを [[04_KNOWLEDGE/会社運営/AI勉強会・セミナーの収益化と事業の尖らせ方|収益化のノート]] と [[01_MEMORY/ai-benkyokai-202608|記憶ノート]] に追記
 
+## 最新のセーブポイント（2026-10-20 深夜）
+
+| 項目 | 状態 |
+|---|---|
+| リサーチ要約 | 完成（2026-10-19 時点の数字・出典付き） |
+| スライド 40 枚（明るい地） | 完成。1 ファイル HTML と PDF を `納品/` に出力。**SHO の通し確認待ち** |
+| ブラウザ用ページ | https://claude.ai/artifact/2nXrEX4QhtbjQacZkQJuXR（非公開。SHO のアカウントで開く） |
+| 配布用コピー | デスクトップ `AI勉強会10月度分`（このPCのみ） |
+| GitHub（履歴用・非公開） | `e-almighty/almighty` ブランチ `claude/ai-benkyokai-20261021`、フォルダ `ai-benkyokai-20261021/`。最初のコミット `5262ac4`（64 ファイル・約 23 MB）。ローカルの複製は `C:/Users/user/20260530/almighty`（このPCのみ・Dropbox の外） |
+| 次の一歩 | ① SHO が PDF を通しで確認 ② 直しがあれば `build_deck.py` → `deck_tools.py all` ③ 任意で画面写真・アンケート QR ④ 開催後に結果を記録 |
+| 読む順 | `PROJECT_OVERVIEW.md` → `作業ログ_2026-10-20.md` → `review-notes.md` → リサーチ要約 |
+
+正本は Vault（Dropbox で全 PC に同期）。GitHub は「セーブして」と言われた時点の写し。Vault を直したら、次の「セーブして」で GitHub も追いつかせる。
+
+## 呼び出し方（どの PC・どの AI でも同じ）
+
+再開の一言：
+
+```
+Astra の勉強会の続き。Vault の 03_PROJECTS/AI勉強会_20261021/PROJECT_OVERVIEW.md と一番新しい作業ログを読んで、今の状況と次の一歩を報告して。
+```
+
+AI はこれを受けたら ①このノート ②一番新しい `作業ログ_*.md` を読み、現在地と SHO 待ちを 5 行以内で報告して指示を待つ。勝手にスライドを作り直さない。
+
+| SHO が言う言葉 | AI がやること |
+|---|---|
+| **Astra の勉強会の続き**／**営業協会の勉強会（10/21）の続き** | 上の再開の一言と同じ |
+| **Astra スライドを直して：〇枚目を△△に** | `build_deck.py` の該当スライドを直す → `python3 build_deck.py` → `python3 deck_tools.py all` → `screenshots/overview/` で崩れを確認 → `review-notes.md` に記録 → 納品物を見せる |
+| **Astra スライドを開いて** | `納品/第一部AI_Astraを味方にする夜_2026-10-21.html` を開く。URL が要るときはブラウザ用ページを出す |
+| **セーブして** | ①Vault に最新ファイル ②GitHub の上記ブランチへコミット＋push（複製が無い PC では `git clone` → `git checkout claude/ai-benkyokai-20261021` から） ③作業ログに 1 行 ④この表を更新 |
+
+### 別の PC で続きをやる手順
+
+1. Dropbox の同期が終わっているか確認（`納品/` に PDF と HTML が見えれば最新）
+2. Claude Code を Vault（または `03_PROJECTS/AI勉強会_20261021`）で開き、上の「再開の一言」を貼る
+3. スライドを作り直す場合に要るもの：Python 3（Pillow・img2pdf）と Google Chrome。無ければ PDF と HTML をそのまま使う
+4. Dropbox が使えないときだけ GitHub から：`git clone https://github.com/e-almighty/almighty.git` → `git checkout claude/ai-benkyokai-20261021` → `ai-benkyokai-20261021/`
+
 ## 判断メモ
 
 - 「アストラ2」（9/25 の会話）は GPT-6.1 Astra を指していたと思われるが、9/28 に公開中止。勉強会で扱うのは現行の GPT-6 Astra。中止の件は第 5 章で 1 枚（28 枚目）
