@@ -1,0 +1,397 @@
+{
+  "title": "GPT-6 Astra ― 答えるAIから、仕事を完了するAIへ",
+  "event": "営業協会 AI勉強会",
+  "eventDate": "2026-10-21",
+  "sourceDate": "2026-10-19",
+  "audience": "営業協会の一般参加者。AIの基本を知っている人も初めての人も含む",
+  "slideCount": 38,
+  "editorialNotes": [
+    "1枚1メッセージ。表示文は短くし、詳細は話者ノートで話す。",
+    "料金はAPI Standardの短いコンテキストの100万トークン当たり。月額プラン料金ではない。",
+    "ベンダーの公式説明と実務上の提案を区別する。総合的な勝者は断定しない。",
+    "登壇者の自己紹介、実績、ライブデモの素材は未提供なので捏造しない。",
+    "各ページのsourceUrlsは話者ノートの根拠。提案や例示だけのページは関連する公式機能ページを示す。"
+  ],
+  "slides": [
+    {
+      "number": 1,
+      "chapter": "Astraとは何か",
+      "title": "GPT-6 Astra",
+      "message": "答えるAIから、仕事を完了するAIへ",
+      "bullets": ["営業協会 AI勉強会", "2026年10月21日"],
+      "layout": "明るい表紙。右に『質問→調査→操作→検証→成果物』の一本線",
+      "notes": "今日のテーマはGPT-6 Astraです。性能の数字だけでなく、実際に仕事をどう任せるかを一緒に考えます。調査から完成物までの流れを見て、明日使える依頼の仕方を持ち帰ってください。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra"]
+    },
+    {
+      "number": 2,
+      "chapter": "Astraとは何か",
+      "title": "今日の持ち帰り",
+      "message": "自分の仕事をAstraにどう任せるかを決める",
+      "bullets": ["Astraの正体", "できること", "任せ方とモデル比較"],
+      "layout": "三つの大きな道標。各道標に小さなアイコン",
+      "notes": "今日はまずAstraの役割を押さえ、次にできる仕事の範囲を見ます。そのうえで依頼の書き方を練習し、Claude Fable 5.1との違いを確かめます。最後に、ご自身の業務で試す仕事を一つ選べる状態を目指します。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection"]
+    },
+    {
+      "number": 3,
+      "chapter": "Astraとは何か",
+      "title": "結論を先に",
+      "message": "Astraは『答え』より『完成物』を任せると生きる",
+      "bullets": ["質問への回答", "調査・判断・制作・確認", "使える成果物"],
+      "layout": "左から右への太い進行矢印。成果物側を強調",
+      "notes": "従来のAIの使い方は、質問して答えを受け取り、その後の作業は人が行う形が中心でした。Astraは難しい仕事を複数の段階に分け、道具を使いながら進める用途に設計されています。何を完成させたいかを伝えることが出発点です。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra"]
+    },
+    {
+      "number": 4,
+      "chapter": "Astraとは何か",
+      "title": "Astraの位置づけ",
+      "message": "OpenAIの最難関業務向けモデル",
+      "bullets": ["2026年9月3日公開", "推論・コード・PC操作・調査・文書"],
+      "layout": "発表日を大きく見せ、五つの用途を横並び",
+      "notes": "OpenAIは2026年9月3日にAstraを公開しました。公式には、複雑な推論、コーディング、コンピューター操作、調査、文書作成など、要求の高い仕事を最後まで進めるモデルと位置づけています。名称の由来や内部構造は公開情報から断定できません。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/changelog", "https://developers.openai.com/api/docs/models/gpt-6-astra"]
+    },
+    {
+      "number": 5,
+      "chapter": "Astraとは何か",
+      "title": "AIの役割が広がった",
+      "message": "返答するだけでなく、道具を使って進める",
+      "bullets": ["質問に答える", "資料を調べる", "作る・確かめる"],
+      "layout": "旧来と新しい仕事の流れを左右対比",
+      "notes": "たとえば競合調査を頼むとき、検索結果の要約だけでは経営判断に使いにくいですよね。必要な比較軸を決め、出典を確認し、表と提案にまとめるところまで進めるのがAstraの得意な使い方です。実際の操作には実行基盤とツールが必要です。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra"]
+    },
+    {
+      "number": 6,
+      "chapter": "Astraとは何か",
+      "title": "仕事を動かす5つの層",
+      "message": "モデルだけでなく、道具と仕事の文脈が要る",
+      "bullets": ["モデル", "実行基盤", "ツール", "資料・ルール", "権限・承認"],
+      "layout": "五段の積み木。最下段を権限・承認にする",
+      "notes": "Astraは頭脳に当たります。その頭脳をCodexやAPIの実行基盤に載せ、検索やファイルなどの道具を渡し、自社の資料やルールを読ませます。さらに何を自動でしてよく、何を人が承認するかを決めると、業務で使える仕組みになります。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra", "https://developers.openai.com/blog/codex-as-a-platform"]
+    },
+    {
+      "number": 7,
+      "chapter": "Astraとは何か",
+      "title": "任せた範囲で判断する",
+      "message": "境界を決めるほど、自律的に進めやすい",
+      "bullets": ["目的を理解", "必要な道具を選択", "重要な曖昧さだけ確認"],
+      "layout": "人とAIの役割分担図。承認点を明示",
+      "notes": "Astraの良さは、細かな操作順を全部指定しなくても、目的から次の作業を選べるところです。ただし、公開や支払いのような操作まで無制限に任せるわけではありません。事前に境界をはっきり書くと、安全な範囲で仕事を進めてもらいやすくなります。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra", "https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra"]
+    },
+    {
+      "number": 8,
+      "chapter": "Astraとは何か",
+      "title": "GPT-6の役割分担",
+      "message": "難題はAstra、普段はSol、大量処理はLuna",
+      "bullets": ["Astra｜最難関", "Sol｜実務の主力", "Luna｜定型の大量処理"],
+      "layout": "三段の階段。上に行くほど難度と費用が上がる",
+      "notes": "OpenAIには複数のモデルがあります。Astraをすべての仕事に使うより、難しさと成果への影響で選ぶほうが実務的です。複雑な最終判断はAstra、通常の制作や分析はSol、分類や抽出の大量処理はLunaを試す、という分担を提案します。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection", "https://developers.openai.com/api/docs/models"]
+    },
+    {
+      "number": 9,
+      "chapter": "Astraとは何か",
+      "title": "Astraの基本仕様",
+      "message": "長い文脈と大きな出力を扱える",
+      "bullets": ["入力文脈 105万トークン", "最大出力 12万8千トークン", "画像入力・テキスト出力"],
+      "layout": "数字三つのメトリクスカード。下部に注記",
+      "notes": "公式仕様では文脈が105万トークン、最大出力が12万8千トークンです。画像は入力できますが、モデルの出力はテキストです。画像生成はツール経由で行います。音声や動画のネイティブ入出力には対応していないため、できることを道具込みで説明する必要があります。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra"]
+    },
+    {
+      "number": 10,
+      "chapter": "Astraとは何か",
+      "title": "100万トークンの考え方",
+      "message": "入る量より、渡す資料の選び方が大切",
+      "bullets": ["大量に入れられる", "必要な情報を選ぶ", "根拠を確かめる"],
+      "layout": "大きな箱に必要な資料だけを入れるイラスト",
+      "notes": "文脈が長いからといって、手元の資料を全部入れれば良いわけではありません。関係ない資料は判断を難しくし、費用も増やします。仕事に必要な情報を選び、古いものと新しいものを分け、重要な数字の根拠を確認する運用が大切です。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/api/docs/pricing"]
+    },
+    {
+      "number": 11,
+      "chapter": "Astraに何ができるか",
+      "title": "Astraの道具箱",
+      "message": "検索・ファイル・コード・PC操作を組み合わせる",
+      "bullets": ["Web・ファイル検索", "コード実行・修正", "画像生成・PC操作・MCP"],
+      "layout": "用途別の道具箱。ロゴではなく抽象アイコンを使う",
+      "notes": "Astraは対応する実行環境で、Web検索、ファイル検索、コード実行、シェル、コードの修正、PC操作、MCPなどのツールを使えます。画像生成もツールの一つです。実際に使える道具は、その製品や接続設定、権限によって変わります。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra"]
+    },
+    {
+      "number": 12,
+      "chapter": "Astraに何ができるか",
+      "title": "調査を成果物にする",
+      "message": "調べた結果を、判断できる比較表へ",
+      "bullets": ["競合・相場・制度", "一次情報で確認", "比較表＋提案"],
+      "layout": "検索結果の束が比較表に変わる流れ",
+      "notes": "営業の仕事なら競合、相場、仕入先、制度などを調べる場面があります。Astraには調査対象、比較軸、対象期間を渡し、各項目の出典と未確認事項を残すよう頼めます。結果は単なる要約ではなく、次の判断に使える表と提案にします。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra"]
+    },
+    {
+      "number": 13,
+      "chapter": "Astraに何ができるか",
+      "title": "文書を最後まで作る",
+      "message": "調査から報告書・企画書まで一続きで進める",
+      "bullets": ["材料を読む", "構成を決める", "作成→確認→修正"],
+      "layout": "文書のページが完成していく三段フロー",
+      "notes": "企画書や提案書、FAQ、マニュアルは、調べる作業と書く作業が分かれがちです。Astraには誰に読ませる文書か、長さ、必要な根拠を伝え、下書きだけでなく確認と修正まで依頼できます。対外文書なら重要な数字と固有名詞を最後に人が確認します。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/api/docs/guides/file-inputs"]
+    },
+    {
+      "number": 14,
+      "chapter": "Astraに何ができるか",
+      "title": "スライドも一気通貫",
+      "message": "調査→構成→制作→表示確認まで任せる",
+      "bullets": ["根拠を集める", "1枚1メッセージにする", "全ページを見る"],
+      "layout": "実際のスライド制作工程を横長のタイムラインで",
+      "notes": "今日の資料づくりも実例です。まずリサーチの根拠を確認し、38枚のストーリーに組み直し、各ページの文を短くします。その後に実際の画面を見て、文字のはみ出しや読みにくさを直します。仕事はファイルを作った時点ではなく、見られる形になって完了です。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra"]
+    },
+    {
+      "number": 15,
+      "chapter": "Astraに何ができるか",
+      "title": "表計算とデータ",
+      "message": "集計に加え、数字の意味まで考える",
+      "bullets": ["売上・在庫・顧客", "異常値を発見", "グラフと次の一手"],
+      "layout": "小さな表→グラフ→判断の流れ",
+      "notes": "売上表やアンケートを渡して、集計、分類、グラフ化、異常値の確認を頼めます。ただ、数字が間違っていると結論も変わります。計算式、対象期間、欠損の扱いを明示し、重要な集計は別の方法でも確かめるよう依頼するのが良い使い方です。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/api/docs/guides/file-inputs"]
+    },
+    {
+      "number": 16,
+      "chapter": "Astraに何ができるか",
+      "title": "Webサイトやアプリ",
+      "message": "目的と完成条件から、試作品まで進める",
+      "bullets": ["要件", "画面と実装", "操作・テスト・修正"],
+      "layout": "左に依頼、右に試作品の画面枠",
+      "notes": "コードを書けなくても、誰が使い、何を達成する画面かを説明できます。Astraは構成、実装、テスト、修正をつなげて進める用途に向いています。公開まで任せる場合は公開先や承認条件を別に決めます。まず社内で触れる試作品を作る依頼が取り組みやすいでしょう。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/code-generation", "https://developers.openai.com/api/docs/models/gpt-6-astra"]
+    },
+    {
+      "number": 17,
+      "chapter": "Astraに何ができるか",
+      "title": "ブラウザ・PC操作",
+      "message": "画面を読み、操作し、結果を確かめる",
+      "bullets": ["調べる", "入力する", "結果を見る"],
+      "layout": "ブラウザ画面と承認ゲートの図",
+      "notes": "対応する環境と権限があれば、ブラウザやPC画面を見ながら操作できます。たとえば管理画面の内容を確認し、下書きを入力することが考えられます。送信、購入、削除、公開のような外部に影響する操作は、人の確認点として明示しましょう。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/blog/codex-as-a-platform"]
+    },
+    {
+      "number": 18,
+      "chapter": "Astraに何ができるか",
+      "title": "画像とデザイン",
+      "message": "見て評価し、生成ツールで素材を作る",
+      "bullets": ["画像を読む", "デザインを評価", "画像生成ツールを使う"],
+      "layout": "元画像→フィードバック→改善画像の三分割",
+      "notes": "Astraには画像や画面を見せて、文字の読みにくさや構成の問題を確認してもらえます。必要な素材は画像生成ツールを呼び出して作れます。ここは区別が大事です。Astra本体が画像を直接出力する仕様ではなく、接続されたツールを使って生成します。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra"]
+    },
+    {
+      "number": 19,
+      "chapter": "Astraに何ができるか",
+      "title": "コードの修正と点検",
+      "message": "原因を探し、直し、試して確かめる",
+      "bullets": ["調査", "仮説と修正", "テストと根拠"],
+      "layout": "虫眼鏡・工具・チェックの循環図",
+      "notes": "アプリの不具合では、エラーが出た行だけ直しても原因が残ることがあります。Astraは複数のファイルや履歴を横断して原因を探し、修正後のテストまで進める仕事に向きます。どこを変えたか、何で確かめたかも一緒に報告させるとレビューしやすくなります。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/code-generation", "https://developers.openai.com/blog/maintaining-software-with-the-gpt-6-family"]
+    },
+    {
+      "number": 20,
+      "chapter": "Astraに何ができるか",
+      "title": "複数のAIで分担",
+      "message": "独立した仕事は並列化し、最後に検証する",
+      "bullets": ["担当ごとに調査", "別担当が確認", "親が統合"],
+      "layout": "中央に統合役、周囲に調査役と検証役",
+      "notes": "たとえば5社の競合調査なら、会社ごとに担当を分けられます。その後で別の担当に重要な数字と出典を確認させ、最後に一つの比較表にします。一方、同じファイルを同時に編集するような分け方は衝突しやすいので、作業を独立させることが条件です。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra", "https://developers.openai.com/blog/codex-as-a-platform"]
+    },
+    {
+      "number": 21,
+      "chapter": "Astraに何ができるか",
+      "title": "営業の現場で使うなら",
+      "message": "情報収集より、判断材料と提案を作る",
+      "bullets": ["商談準備", "提案書とFAQ", "業務改善"],
+      "layout": "営業の一日を三つの場面に分けたイラスト",
+      "notes": "営業での使い道は、見込み客の調査だけではありません。相手の状況に合わせた提案書の下書き、想定質問、商談後の整理、業務改善案まで広がります。顧客情報を扱う場合は、使ってよい範囲や保存先を会社のルールに合わせて決めてください。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection"]
+    },
+    {
+      "number": 22,
+      "chapter": "Astraに何ができるか",
+      "title": "『全部できる』の条件",
+      "message": "道具・権限・情報・検証が揃って初めて動く",
+      "bullets": ["今できる", "設定すればできる", "人が判断する"],
+      "layout": "三つの領域を色分けしたベン図",
+      "notes": "Astraの能力は幅広いですが、接続していないアプリには入れず、渡されていない社内情報も知りません。また、決済や契約の最終判断は人の責任です。『何でもできる』と期待するより、使える道具と承認する場面を具体的に決めると成果が安定します。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/blog/codex-as-a-platform"]
+    },
+    {
+      "number": 23,
+      "chapter": "Astraを使いこなす",
+      "title": "まず仕事を選ぶ",
+      "message": "曖昧で重要な仕事ほどAstraを試す価値がある",
+      "bullets": ["正解が見えない", "複数の道具を使う", "見落としの損失が大きい"],
+      "layout": "仕事の難度×事業価値の二軸マップ",
+      "notes": "モデル選びは名前から始めず、仕事から始めます。正解が見えず、複数の資料や道具を使い、見落としの損失が大きいならAstraを試す価値があります。入力と出力が明確な大量処理は、SolやLunaでも十分かを測りましょう。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection", "https://developers.openai.com/blog/maintaining-software-with-the-gpt-6-family"]
+    },
+    {
+      "number": 24,
+      "chapter": "Astraを使いこなす",
+      "title": "仕事を渡す7項目",
+      "message": "目的と完了条件を中心に依頼を設計する",
+      "bullets": ["目的・背景・成果物", "制約・道具と権限", "検証・完了条件"],
+      "layout": "七枚のカード。中央の目的と完了条件を大きく",
+      "notes": "依頼文に入れたいのは、目的、背景、成果物、制約、使える道具と権限、検証方法、完了条件です。すべてを長文で書く必要はありません。ただ、何のために何を作るかと、どこまで進めれば完成かは明確にしましょう。Astraが迷う場所を減らせます。",
+      "sourceUrls": ["https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra", "https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra"]
+    },
+    {
+      "number": 25,
+      "chapter": "Astraを使いこなす",
+      "title": "目的の書き方",
+      "message": "『調べて』を『判断できる形にして』へ",
+      "bullets": ["△ 競合を調べて", "○ 参入判断用に価格帯と差別化案を出して"],
+      "layout": "悪い例と良い例の左右対比。良い例を大きく",
+      "notes": "『競合を調べて』だけだと、検索結果のまとめで止まるかもしれません。『兵庫県の法人向けPC保守を対象に、価格帯と差別化案を経営判断に使える表にして』と伝えると、必要な調査の深さと出力が見えます。目的を書くことが、仕事の質を左右します。",
+      "sourceUrls": ["https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra"]
+    },
+    {
+      "number": 26,
+      "chapter": "Astraを使いこなす",
+      "title": "終点を決める",
+      "message": "完成条件があると、作業をやり切りやすい",
+      "bullets": ["対象と件数", "成果物の形式", "検証の基準"],
+      "layout": "ゴールテープに三つのチェック項目",
+      "notes": "たとえば『15社を六つの軸で比較し、重要な数字は一次情報で確かめ、30枚のスライド原稿にして、未確認事項は明記する』と書けます。終点が曖昧だと、早く返ってきたり、どこまでも広がったりします。成果物と検証の条件を一緒に決めます。",
+      "sourceUrls": ["https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra"]
+    },
+    {
+      "number": 27,
+      "chapter": "Astraを使いこなす",
+      "title": "権限を分ける",
+      "message": "安全な下準備は進め、対外操作は確認する",
+      "bullets": ["自動：閲覧・分析・下書き", "確認：送信・公開・支払い・削除"],
+      "layout": "緑の自動レーンと橙の承認ゲート",
+      "notes": "仕事を任せる際には、どこまで自動で進めてよいかを書きます。資料の閲覧、分析、下書き、やり直せる修正は任せやすい作業です。一方、メール送信や公開、支払い、削除は人の確認を入れます。この線引きがあると、AIは安全な範囲で進みやすくなります。",
+      "sourceUrls": ["https://developers.openai.com/blog/codex-as-a-platform", "https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra"]
+    },
+    {
+      "number": 28,
+      "chapter": "Astraを使いこなす",
+      "title": "指示は短く、矛盾なく",
+      "message": "ルールの詰め込み過ぎは仕事を鈍らせる",
+      "bullets": ["短い入口", "必要な資料だけ読む", "状況に合う検証"],
+      "layout": "長い巻物を短い案内板に整理する比喩",
+      "notes": "Astraは指示に敏感なので、古いルールや重複する手順まで読ませると、止まり過ぎたり、不要な確認を増やしたりします。会社の共通ルールは短い入口に置き、詳細は必要になったときだけ参照する形が有効です。小さな修正に大規模テストを強制しないことも大切です。",
+      "sourceUrls": ["https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra"]
+    },
+    {
+      "number": 29,
+      "chapter": "Astraを使いこなす",
+      "title": "作ったら必ず見る",
+      "message": "作成→確認→修正を一つの依頼に含める",
+      "bullets": ["作る", "実物を見る", "直して再確認"],
+      "layout": "三つの矢印が回る検証ループ",
+      "notes": "調査なら重要な情報を別の資料で確かめ、アプリなら実際に操作し、スライドなら全ページを表示して読みやすさを見ます。『作って終わり』ではなく、確認して問題を直すところを完了条件に入れてください。これだけで成果物の使いやすさが変わります。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra", "https://developers.openai.com/blog/codex-as-a-platform"]
+    },
+    {
+      "number": 30,
+      "chapter": "Astraを使いこなす",
+      "title": "考える量を調整",
+      "message": "品質を満たす最も軽い設定を選ぶ",
+      "bullets": ["low｜小さな明確作業", "medium・high｜通常〜重要", "xhigh・max｜難題"],
+      "layout": "五段のスライダー。高設定を常用しない注記",
+      "notes": "Astraにはlowからmaxまで五段階のreasoning effortがあります。小さく明確な作業は軽く、複数資料の判断や対外資料は高く、特に難しい案件だけ最上位を検討します。まず同じ仕事で品質と所要時間を比べ、必要な水準を満たす一番軽い設定を選ぶのが実務的です。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://developers.openai.com/api/docs/guides/model-selection"]
+    },
+    {
+      "number": 31,
+      "chapter": "Astraを使いこなす",
+      "title": "モデルを役割で使う",
+      "message": "設計はAstra、通常運用はSol、量はLuna",
+      "bullets": ["Astra：難題を設計", "Sol：実務を回す", "Luna：大量処理"],
+      "layout": "三モデルの役割分担と難題の再昇格矢印",
+      "notes": "この分担は公式仕様から組み立てた実務上の提案です。最初の難しい設計をAstraで行い、手順が固まった通常業務をSolで運用し、単純な分類や抽出はLunaで大量に処理します。成果が下がる仕事だけAstraに戻すと、品質と費用を両立しやすくなります。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection", "https://developers.openai.com/blog/maintaining-software-with-the-gpt-6-family"]
+    },
+    {
+      "number": 32,
+      "chapter": "Astraを使いこなす",
+      "title": "うまくいかない時",
+      "message": "失敗の型に合わせて依頼を直す",
+      "bullets": ["止まる→権限を明確に", "広がる→対象外を明確に", "浅い→検証と出典を指定"],
+      "layout": "症状→修正の三行カード。アイコンで区別",
+      "notes": "AIが止まり過ぎるなら、安全に進めてよい範囲を書きます。話が広がり過ぎるなら対象外と分量を決めます。調査が浅ければ一次情報と確認条件を指定します。能力の問題と決めつける前に、目的、境界、完了条件が揃っているか見直してみてください。",
+      "sourceUrls": ["https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra"]
+    },
+    {
+      "number": 33,
+      "chapter": "Fable 5.1との比較",
+      "title": "Claude Fable 5.1",
+      "message": "Claude系の長期難題向け最上位モデル",
+      "bullets": ["長期のコード作業", "深い調査", "複数日にわたる仕事"],
+      "layout": "Claude系の階段。Sonnet→Opus→Fable",
+      "notes": "AnthropicのFable 5.1も高い能力を持つモデルです。特に長い期間にわたるエージェント作業や難しい推論に重点があります。ただしAnthropicは多くの仕事をOpus 5.5から始め、高い設定でも不足したときにFableへ上げる方針を示しています。",
+      "sourceUrls": ["https://platform.claude.com/docs/en/models/fable-5-1/overview", "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"]
+    },
+    {
+      "number": 34,
+      "chapter": "Fable 5.1との比較",
+      "title": "基本数字は近い",
+      "message": "見出し料金と最大出力は同じ",
+      "bullets": ["Astra｜105万・12.8万・$10/$50", "Fable｜100万・12.8万・$10/$50", "料金はAPI・100万トークン当たり"],
+      "layout": "二列の大きな比較カード。下に料金条件の注記",
+      "notes": "Astraは105万、Fableは100万トークンの文脈です。最大出力は両方とも12万8千トークン。APIの基本入力・出力単価も、100万トークン当たり10ドルと50ドルです。ただし実際の支払いは、長文やキャッシュ、ツールの使い方で変わります。月額プランの料金でもありません。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/models/gpt-6-astra", "https://platform.claude.com/docs/en/models/fable-5-1/overview", "https://developers.openai.com/api/docs/pricing", "https://platform.claude.com/docs/en/about-claude/pricing"]
+    },
+    {
+      "number": 35,
+      "chapter": "Fable 5.1との比較",
+      "title": "違いは働かせ方",
+      "message": "使う環境と仕事の長さで選ぶ",
+      "bullets": ["Astra｜Codex・OpenAIツール群", "Fable｜Claude Code・Cowork", "共通｜難しい仕事を最後まで"],
+      "layout": "左右二列と中央の共通領域",
+      "notes": "AstraはCodexやOpenAIのツール群と組み合わせ、曖昧な仕事を完成物まで進める使い方が中心です。FableはClaude CodeやCoworkで、長い期間の難題に向けた位置づけです。これは公式の重点から見た使い分けで、片方だけにできるという意味ではありません。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection", "https://platform.claude.com/docs/en/models/fable-5-1/overview", "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"]
+    },
+    {
+      "number": 36,
+      "chapter": "Fable 5.1との比較",
+      "title": "長文の条件は違う",
+      "message": "同じ基本単価でも、長文とキャッシュで差が出る",
+      "bullets": ["Astra｜入力27.2万超で料金倍率", "Fable｜100万全域が標準単価", "キャッシュ読込｜$1 対 $0.25"],
+      "layout": "27.2万の境界を示す棒グラフと小さな比較表",
+      "notes": "Astraは入力が27万2千トークンを超えると、リクエスト全体の入力とキャッシュが2倍、出力が1.5倍になります。Fableは100万トークン全域で標準単価です。キャッシュ読込もFableの方が低い見出し価格です。実費はキャッシュ書込やツール利用も含めて見積もりましょう。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/pricing", "https://platform.claude.com/docs/en/about-claude/pricing", "https://platform.claude.com/docs/en/models/fable-5-1/overview"]
+    },
+    {
+      "number": 37,
+      "chapter": "Fable 5.1との比較",
+      "title": "自社の仕事で比べる",
+      "message": "成功率・時間・成功1件の費用で選ぶ",
+      "bullets": ["同じ資料", "同じ完成条件", "同じ評価表"],
+      "layout": "二つのモデルから一つの評価表に流れる図",
+      "notes": "どちらが総合的に賢いかを一つの数字で決めるのは難しいです。使うツールや考える量、課金条件も違います。自社で重要な仕事を一つ選び、同じ資料と完成条件で試しましょう。成果の正確さ、かかった時間、成功一件当たりの費用を比較すると判断できます。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection", "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"]
+    },
+    {
+      "number": 38,
+      "chapter": "まとめ",
+      "title": "明日、何を任せますか？",
+      "message": "複雑でも完成条件を言える仕事を一つ選ぶ",
+      "bullets": ["目的を伝える", "権限と終点を決める", "作って、確かめる"],
+      "layout": "明るい締めのページ。三つの行動と問いを大きく",
+      "notes": "今日覚えてほしいのは三つです。Astraには答えより完成物を任せること。目的、権限、完了条件をはっきり伝えること。そして作ったものを確認し、直すところまで依頼することです。皆さんの仕事で、手順は複雑でも完成した姿なら言える仕事は何でしょうか。一つ選んで試してみてください。",
+      "sourceUrls": ["https://developers.openai.com/api/docs/guides/model-selection", "https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra"]
+    }
+  ]
+}

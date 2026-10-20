@@ -1,0 +1,145 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+const root = 'C:/Users/user/Documents/Codex/2026-10-19/ai-ai';
+const vault = 'C:/Users/user/Dropbox/HIRATA/Obsidian/Almighty-AI-Brain';
+const base = path.join(vault, '05_SKILLS/seminar-presentation-deck/engine/07-seminar-style');
+const data = JSON.parse(await fs.readFile(path.join(root, 'work/slide_employee_script.json'), 'utf8'));
+const slides = Array.isArray(data) ? data : data.slides;
+if (!Array.isArray(slides) || slides.length < 30 || slides.length > 40) throw new Error('Expected 30–40 slides');
+const originalCss = await fs.readFile(path.join(base, 'css07/deck07.css'), 'utf8');
+const originalJs = await fs.readFile(path.join(base, 'js07/deck07.js'), 'utf8');
+const coverData = (await fs.readFile(path.join(root, 'outputs/2026-10-21_Astra勉強会_表紙素材.png'))).toString('base64');
+const visualFiles = {12:'research_photo.png',13:'document_illustration.png',15:'data_photo.png',16:'website_illustration.png',17:'ai_photo.png',21:'sales_photo.png'};
+const visualData = Object.fromEntries(await Promise.all(Object.entries(visualFiles).map(async ([n,file]) => [n,(await fs.readFile(path.join(root,'work/assets',file))).toString('base64')])));
+const esc = v => String(v ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+const layouts = ['statement', 'split', 'list', 'steps', 'comparison', 'metric', 'question'];
+const assigned = {
+  2:'steps',3:'statement',4:'metric',5:'comparison',6:'diagram',7:'split',8:'diagram',
+  9:'metric',10:'statement',11:'diagram',12:'photo',13:'illustration',14:'diagram',15:'photo',
+  16:'illustration',17:'photo',18:'steps',19:'steps',20:'diagram',21:'photo',22:'diagram',
+  23:'split',24:'diagram',25:'comparison',26:'list',27:'comparison',28:'split',
+  29:'diagram',30:'metric',31:'diagram',32:'list',33:'split',34:'comparison',
+  35:'comparison',36:'comparison',37:'diagram',38:'list'
+};
+const diagramFor = s => {
+  const n=s.number;
+  const cells={
+    6:['モデル','実行基盤','ツール','資料・ルール','権限・承認'],
+    8:['Astra|難題の設計','Sol|日々の実務','Luna|定型の大量処理'],
+    11:['Web・ファイル検索','コード実行・修正','画像生成・PC操作','外部連携（MCP）'],
+    14:['根拠を集める','1枚1メッセージ','全ページを確認'],
+    20:['調査担当','検証担当','親が統合'],
+    22:['今できる','設定すればできる','人が判断する'],
+    24:['目的','背景','成果物','制約','道具・権限','検証','完了条件'],
+    29:['作る','実物を見る','直して再確認'],
+    31:['Astra|難題を設計','Sol|実務を回す','Luna|大量処理'],
+    37:['成功率','所要時間','成功1件の費用']
+  }[n]??s.bullets??[];
+  const klass=n===6?'stack':n===11?'hub':n===20?'branch':n===24?'seven':n===29?'loop':'flow';
+  return `<div class="diagram diagram-${klass}">${cells.map((x,j)=>{const [a,b]=String(x).split('|');return `<div class="diagram-node"><small>${String(j+1).padStart(2,'0')}</small><strong>${esc(a)}</strong>${b?`<span>${esc(b)}</span>`:''}</div>`}).join('')}</div>`;
+};
+const pick = (s, i) => {
+  if (assigned[s.number]) return assigned[s.number];
+  const v = String(s.layout ?? '').toLowerCase();
+  if (i === 0) return 'cover';
+  if (/cover|section|chapter|章扉/.test(v)) return 'section';
+  if (/question|問い/.test(v)) return 'question';
+  if (/compare|対比|比較|comparison|table/.test(v)) return 'comparison';
+  if (/metric|stat|数値/.test(v)) return 'metric';
+  if (/step|flow|process|手順/.test(v)) return 'steps';
+  if (/split|two|左右/.test(v)) return 'split';
+  if (/statement|big|一言/.test(v)) return 'statement';
+  return layouts[(i - 1) % layouts.length];
+};
+const bodyFor = (s, mode) => {
+  const bullets = (s.bullets ?? []).map(x => typeof x === 'string' ? x : x.text ?? '').filter(Boolean);
+  const title = esc(s.title);
+  const message = esc(s.message);
+  const kicker = esc(s.kicker ?? s.chapter ?? 'GPT-6 ASTRA');
+  const count = String(s.number ?? '').padStart(2, '0');
+  const num = `<div class="slide-index">${count} <span>/ ${slides.length}</span></div>`;
+  if (mode === 'cover') return `<div class="cover-kicker">営業協会 AI勉強会 / 2026.10.21</div><div class="cover-title">GPT-6 <em>ASTRA</em></div><div class="cover-sub">仕事の成果につなげる使い方</div><div class="cover-bottom">活用法・実務例・Claude Fable 5.1との比較</div>${num}`;
+  if (mode === 'section') return `<div class="section-kicker">${kicker}</div><div class="section-title">${title}</div><div class="section-message">${message}</div><div class="section-number" aria-hidden="true">${count}</div>${num}`;
+  if (mode === 'statement' || mode === 'question') return `<div class="topline">${kicker}</div><h1 class="statement-title">${title}</h1><div class="statement-message">${message}</div>${bullets.length ? `<div class="statement-detail">${esc(bullets[0])}</div>` : ''}${num}`;
+  if (mode === 'photo') return `<div class="topline">${kicker}</div><h1 class="slide-title">${title}</h1><div class="photo-lead">${message}</div><div class="photo-bullets">${bullets.slice(0,3).map((x,j)=>`<p><b>${String(j+1).padStart(2,'0')}</b>${esc(x)}</p>`).join('')}</div><img class="photo-visual" src="data:image/png;base64,${visualData[s.number]}" alt="${title}の業務イメージ">${num}`;
+  if (mode === 'illustration') return `<div class="topline">${kicker}</div><h1 class="slide-title">${title}</h1><div class="illustration-lead">${message}</div><div class="illustration-chips">${bullets.slice(0,3).map((x,j)=>`<span><b>${String(j+1).padStart(2,'0')}</b> ${esc(x)}</span>`).join('')}</div><img class="illustration-visual" src="data:image/png;base64,${visualData[s.number]}" alt="${title}の図解イラスト">${num}`;
+  if (mode === 'diagram') return `<div class="topline">${kicker}</div><h1 class="slide-title">${title}</h1><div class="diagram-lead">${message}</div>${diagramFor(s)}${num}`;
+  if (mode === 'comparison') {
+    let left = s.leftTitle ?? bullets[0] ?? 'Astra';
+    let right = s.rightTitle ?? bullets[1] ?? 'Fable 5.1';
+    let ld = s.leftBody ?? bullets[2] ?? '';
+    let rd = s.rightBody ?? bullets[3] ?? '';
+    let foot = '';
+    if (s.number === 5) { left='質問への回答'; right='道具を使う仕事'; ld='人が次の作業を考える'; rd='調査・制作・確認まで進める'; }
+    if (s.number === 25) { left='△ あいまい'; right='○ 判断に使える'; ld='競合を調べて'; rd='価格帯・差別化案・上位候補を表にする'; }
+    if (s.number === 27) { left='自動で進める'; right='人が確認する'; ld='閲覧・分析・下書き'; rd='送信・公開・支払い・削除'; }
+    if (s.number === 34) { left='GPT-6 Astra'; right='Claude Fable 5.1'; ld='105万トークン / 最大出力12.8万'; rd='100万トークン / 最大出力12.8万'; foot='API基本単価：両者とも入力 $10 / 出力 $50（100万トークン当たり）'; }
+    if (s.number === 35) { left='Astra'; right='Fable 5.1'; ld='Codex・OpenAIのツール群で、曖昧な仕事から成果物へ'; rd='Claude Code・Coworkで長期の難題へ'; foot='両者の用途は重なる。自社の仕事で評価する。'; }
+    if (s.number === 36) { left='Astra'; right='Fable 5.1'; ld='入力27.2万トークン超で料金倍率'; rd='100万トークン全域が標準単価'; foot='キャッシュ読込：Astra $1 / Fable $0.25（100万トークン当たり）'; }
+    return '<div class="topline">'+kicker+'</div><h1 class="slide-title">'+title+'</h1><div class="lead">'+message+'</div><div class="compare-head"><div>'+esc(left)+'</div><div>'+esc(right)+'</div></div><div class="compare-body"><div>'+esc(ld)+'</div><div>'+esc(rd)+'</div></div>'+(foot?'<div class="compare-foot">'+esc(foot)+'</div>':'')+num;
+  }
+  if (mode === 'metric') {
+    const items = (s.metrics ?? bullets).slice(0, 3).map((x, j) => {
+      const text = typeof x === 'string' ? x : `${x.value ?? ''} ${x.label ?? ''}`;
+      const m = text.match(/^(.{1,16}?)(?:\s*[：:｜|]\s*|\s{2,})(.+)$/);
+      return `<div class="metric"><b>${esc(m ? m[1] : text)}</b><span>${esc(m ? m[2] : '')}</span></div>`;
+    }).join('');
+    return `<div class="topline">${kicker}</div><h1 class="slide-title">${title}</h1><div class="lead">${message}</div><div class="metrics">${items}</div>${num}`;
+  }
+  if (mode === 'steps') return `<div class="topline">${kicker}</div><h1 class="slide-title">${title}</h1><div class="lead">${message}</div><div class="steps">${bullets.slice(0, 4).map((x,j)=>`<div><small>${String(j+1).padStart(2,'0')}</small><span>${esc(x)}</span></div>`).join('')}</div>${num}`;
+  if (mode === 'split') return `<div class="topline">${kicker}</div><h1 class="slide-title">${title}</h1><div class="split-main">${message}</div><div class="split-side">${bullets.slice(0,3).map(x=>`<p>${esc(x)}</p>`).join('')}</div>${num}`;
+  return `<div class="topline">${kicker}</div><h1 class="slide-title">${title}</h1><div class="lead">${message}</div><div class="list-items">${bullets.slice(0,4).map((x,j)=>`<p><b>${String(j+1).padStart(2,'0')}</b>${esc(x)}</p>`).join('')}</div>${num}`;
+};
+const sections = slides.map((s, i) => {
+  const mode = pick(s, i);
+  const notes = [s.notes ?? '', ...(s.sourceUrls ?? []).map(u => `出典: ${u}`)].join(' ');
+  return `<section class="xop-slide tone-paper seminar-light mode-${mode}" data-template-id="${esc(mode)}" data-notes="${esc(notes)}" aria-label="${esc(s.title)}"><div class="xop-canvas"><div class="corner-stripes"></div><div class="semantic-layer"><div class="sem-paper">${bodyFor(s, mode)}</div></div></div></section>`;
+}).join('\n');
+const css = `
+html,body{background:#dcecf5!important;color:#0d2a43}
+.seminar-light .xop-canvas,.seminar-light .sem-paper{background:#edf7fc;color:#0d2a43}
+.seminar-light:nth-child(3n+2) .xop-canvas,.seminar-light:nth-child(3n+2) .sem-paper{background:#f8fbfd}
+.seminar-light:nth-child(3n+3) .xop-canvas,.seminar-light:nth-child(3n+3) .sem-paper{background:#e1f2f9}
+.seminar-light .corner-stripes{opacity:.42;background:repeating-linear-gradient(135deg,#2a77a3 0 10px,transparent 10px 20px)}
+.seminar-light .sem-paper{position:absolute;inset:0;overflow:hidden}
+.mode-cover .sem-paper{background-image:url(data:image/png;base64,${coverData});background-size:cover;background-position:center}
+.topline,.section-kicker,.cover-kicker{position:absolute;left:6%;top:6%;font-size:25px;font-weight:900;letter-spacing:.1em;color:#2a77a3}
+.slide-title{position:absolute;left:6%;right:6%;top:15%;margin:0;font-size:74px;line-height:1.17;font-weight:950;letter-spacing:-.03em}
+.lead{position:absolute;left:6%;right:6%;top:34%;font-size:49px;line-height:1.35;font-weight:850;color:#0d2a43}
+.slide-index{position:absolute;right:5%;bottom:5%;font-size:24px;font-weight:900;color:#2a77a3}.slide-index span{opacity:.54}
+.cover-kicker{top:10%}.cover-title{position:absolute;left:6%;top:25%;font-size:152px;font-weight:950;line-height:1;letter-spacing:-.07em}.cover-title em{font-style:normal;color:#2a77a3}
+.cover-sub{position:absolute;left:6%;top:47%;font-size:67px;font-weight:900}.cover-bottom{position:absolute;left:6%;bottom:11%;font-size:37px;font-weight:800;color:#365c76}
+.cover-visual{position:absolute;right:3%;top:11%;font-size:520px;line-height:1;font-weight:950;color:#c5e9f6;opacity:.78;z-index:0}.cover-title,.cover-sub,.cover-bottom{z-index:2}
+.section-kicker{top:12%}.section-title{position:absolute;left:6%;right:15%;top:34%;font-size:112px;font-weight:950;line-height:1.13}.section-message{position:absolute;left:6%;right:18%;top:66%;font-size:44px;line-height:1.4;font-weight:800;color:#365c76}.section-number{position:absolute;right:3%;top:4%;font-size:530px;font-weight:950;line-height:1;color:#c4e6f4;z-index:0}.section-title,.section-message{z-index:2}
+.statement-title{position:absolute;left:6%;right:6%;top:20%;font-size:74px;line-height:1.2;margin:0}.statement-message{position:absolute;left:6%;right:6%;top:43%;font-size:78px;line-height:1.23;font-weight:950}.statement-detail{position:absolute;left:6%;right:6%;bottom:13%;font-size:34px;font-weight:750;color:#365c76}
+.mode-question .statement-message{font-size:86px;color:#1876a7}
+.list-items{position:absolute;left:6%;right:6%;top:50%;display:grid;grid-template-columns:1fr 1fr;gap:24px 62px}.list-items p{font-size:38px;line-height:1.32;font-weight:850;border-top:3px solid #91c9e4;padding-top:20px;margin:0;display:flex;gap:18px}.list-items b{font-size:25px;color:#2a77a3}
+.split-main{position:absolute;left:6%;width:50%;top:36%;font-size:66px;font-weight:950;line-height:1.25}.split-side{position:absolute;right:6%;width:33%;top:38%}.split-side p{border-top:3px solid #91c9e4;padding:18px 0;margin:0;font-size:37px;line-height:1.32;font-weight:800}
+.steps{position:absolute;left:6%;right:6%;top:54%;display:grid;grid-template-columns:repeat(4,1fr);gap:25px}.steps div{border-top:5px solid #2a77a3;padding-top:20px;display:flex;flex-direction:column;gap:34px}.steps small{font-size:30px;color:#2a77a3;font-weight:900}.steps span{font-size:38px;line-height:1.28;font-weight:900}
+.metrics{position:absolute;left:6%;right:6%;top:55%;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}.metric{display:flex;flex-direction:column;border-top:5px solid #2a77a3;padding-top:28px;gap:22px}.metric b{font-size:66px;line-height:1.15}.metric span{font-size:31px;color:#365c76;font-weight:800}
+.compare-head{position:absolute;left:6%;right:6%;top:51%;display:grid;grid-template-columns:1fr 1fr;gap:40px;font-size:48px;font-weight:950}.compare-head div{border-top:6px solid #2a77a3;padding:20px 0}.compare-body{position:absolute;left:6%;right:6%;top:66%;display:grid;grid-template-columns:1fr 1fr;gap:40px;font-size:35px;line-height:1.35;font-weight:800;color:#365c76}
+.compare-foot{position:absolute;left:6%;right:6%;bottom:13%;font-size:29px;font-weight:800;color:#365c76}
+.photo-lead{position:absolute;left:6%;top:36%;width:42%;font-size:59px;line-height:1.28;font-weight:950;z-index:2}
+.photo-bullets{position:absolute;left:6%;top:61%;width:41%;z-index:2}.photo-bullets p{margin:0;padding:12px 0;border-top:2px solid #9ac9df;font-size:33px;line-height:1.22;font-weight:850;display:flex;gap:18px}.photo-bullets b{font-size:23px;color:#2a77a3}
+.photo-visual{position:absolute;right:5%;top:33%;width:44%;height:55%;object-fit:cover;object-position:62% center;border-radius:18px;box-shadow:0 20px 55px rgba(22,75,110,.18)}
+.illustration-lead,.diagram-lead{position:absolute;left:6%;right:6%;top:34%;font-size:47px;line-height:1.26;font-weight:900}
+.illustration-chips{position:absolute;left:6%;right:6%;top:44%;display:flex;gap:20px;z-index:2}.illustration-chips span{padding:11px 22px;background:#fff;border:2px solid #b6ddec;border-radius:999px;font-size:27px;font-weight:850;box-shadow:0 5px 18px rgba(29,96,134,.1)}.illustration-chips b{color:#2a77a3}
+.illustration-visual{position:absolute;left:6%;right:6%;top:51%;width:88%;height:39%;object-fit:cover;border-radius:18px;box-shadow:0 18px 48px rgba(22,75,110,.16)}
+.diagram{position:absolute;left:6%;right:6%;top:51%;bottom:12%;display:grid;gap:20px}.diagram-node{position:relative;background:#fff;border:3px solid #aed8e9;border-radius:18px;box-shadow:0 14px 32px rgba(23,94,128,.12);padding:22px 26px;display:flex;flex-direction:column;justify-content:center;gap:11px}.diagram-node small{font-size:23px;font-weight:900;color:#2a77a3}.diagram-node strong{font-size:40px;line-height:1.17;font-weight:950}.diagram-node span{font-size:27px;line-height:1.22;font-weight:850;color:#365c76}
+.diagram-flow{grid-template-columns:repeat(3,1fr);align-items:center}.diagram-flow .diagram-node{height:74%}.diagram-flow .diagram-node:not(:last-child):after{content:'→';position:absolute;right:-41px;top:42%;font-size:48px;color:#2a77a3;z-index:3}
+.diagram-stack{grid-template-rows:repeat(5,1fr);gap:8px;top:45%;bottom:8%}.diagram-stack .diagram-node{padding:5px 30px 5px 90px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:33px;border-left:9px solid #2a77a3}.diagram-stack .diagram-node:nth-child(1){margin-left:0}.diagram-stack .diagram-node:nth-child(2){margin-left:4%}.diagram-stack .diagram-node:nth-child(3){margin-left:8%}.diagram-stack .diagram-node:nth-child(4){margin-left:12%}.diagram-stack .diagram-node:nth-child(5){margin-left:16%}.diagram-stack .diagram-node strong{font-size:35px}
+.diagram-hub{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:21px 24px}.diagram-hub:before{content:'ASTRA';position:absolute;left:42%;top:37%;width:16%;height:26%;background:#2a77a3;color:#fff;border:6px solid #edf7fc;border-radius:50%;z-index:3;display:flex;align-items:center;justify-content:center;font-size:29px;font-weight:950;box-shadow:0 10px 28px rgba(23,94,128,.24)}.diagram-hub .diagram-node:nth-child(odd){padding-right:90px}.diagram-hub .diagram-node:nth-child(even){padding-left:90px}
+.diagram-branch{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.diagram-branch .diagram-node:last-child{grid-column:1/3;justify-self:center;width:42%;background:#d7eef8;border-color:#2a77a3}.diagram-branch .diagram-node:nth-child(1):after,.diagram-branch .diagram-node:nth-child(2):after{content:'↘';position:absolute;bottom:-44px;right:43%;font-size:44px;color:#2a77a3;z-index:3}.diagram-branch .diagram-node:nth-child(2):after{content:'↙'}
+.diagram-seven{grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;top:50%;bottom:9%;gap:15px}.diagram-seven .diagram-node{padding:15px 20px}.diagram-seven .diagram-node strong{font-size:29px}.diagram-seven .diagram-node:nth-child(n+5){transform:translateX(50%)}.diagram-seven .diagram-node:last-child{background:#d7eef8;border-color:#2a77a3}
+.diagram-loop .diagram-node{background:#f8fbfd}.diagram-loop .diagram-node:last-child{background:#d7eef8;border-color:#2a77a3}
+.notes-toggle{position:fixed;left:16px;bottom:16px;z-index:201;background:#fff;border:1px solid #91c9e4;color:#0d2a43;border-radius:5px;padding:8px 14px;font-size:13px;cursor:pointer;opacity:.35}.notes-toggle:hover{opacity:1}
+.notes-panel{display:none;position:fixed;left:0;right:0;bottom:0;z-index:200;max-height:36vh;overflow:auto;padding:22px 34px;background:rgba(255,255,255,.97);border-top:3px solid #2a77a3;color:#0d2a43;font:16px/1.7 'Yu Gothic',sans-serif}.notes-panel.open{display:block}
+@media print{@page{size:16in 9in;margin:0}html,body{width:16in;height:auto;background:#fff!important}.deck-stage{display:block;width:16in;height:auto;overflow:visible}.xop-slide,.xop-slide.is-active{display:block!important;width:16in;height:9in;page-break-after:always;break-after:page;background:#fff}.xop-canvas{width:16in!important;height:9in!important;box-shadow:none}.semantic-layer{transform:scale(.8)!important}.deck-nav,.notes-toggle,.notes-panel{display:none!important}}
+`;
+const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GPT-6 Astra｜営業協会AI勉強会</title><style>${originalCss}\n${css}</style></head><body><div class="deck-nav"><button type="button" data-prev aria-label="前へ">◀</button><button type="button" data-next aria-label="次へ">▶</button><select data-jump aria-label="ページ選択"></select></div><div class="deck-stage">${sections}</div><button class="notes-toggle" type="button">話者ノート</button><div class="notes-panel" role="region" aria-label="話者ノート"></div><script>${originalJs}\nconst p=document.querySelector('.notes-panel');const b=document.querySelector('.notes-toggle');function updateNotes(){const s=document.querySelector('.xop-slide.is-active');p.textContent=s?.dataset.notes||''}b.addEventListener('click',()=>{p.classList.toggle('open');updateNotes()});document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='n'){p.classList.toggle('open');updateNotes()}setTimeout(updateNotes,0)});document.querySelectorAll('[data-prev],[data-next],[data-jump]').forEach(x=>x.addEventListener('click',()=>setTimeout(updateNotes,0)));updateNotes();</script></body></html>`;
+const out = path.join(root, 'outputs/2026-10-21_Astra勉強会_38枚.html');
+await fs.writeFile(out, html, 'utf8');
+const notesMd = `# GPT-6 Astra 勉強会 話者ノート\n\n2026年10月21日（水）\n\n` + slides.map((s,i) => `## ${i+1}. ${s.title}\n\n${s.notes ?? ''}\n\n${(s.sourceUrls ?? []).map(u=>`- ${u}`).join('\n')}\n`).join('\n');
+await fs.writeFile(path.join(root, 'outputs/2026-10-21_Astra勉強会_話者ノート.md'), notesMd, 'utf8');
+console.log(JSON.stringify({slides:slides.length,out,bytes:Buffer.byteLength(html)}));
