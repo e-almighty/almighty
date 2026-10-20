@@ -50,7 +50,7 @@ updated: 2026-10-20
 
 ## 最新のセーブポイント（2026-10-20 深夜）
 
-追記（2026-10-20）：Codexで写真4点・イラスト2点・図解10ページを加えた**別版38枚**を制作。`Codex版_38枚/納品/2026-10-20_Astra勉強会_Codex版38枚_セーブポイント.md` に現在地と検証結果を記録。既存の40枚版とは混同・上書きしない。
+追記（2026-10-20）：Codexで写真4点・イラスト2点・図解10ページを加えた**別版38枚**を制作。`Codex版_38枚/納品/2026-10-20_Astra勉強会_Codex版38枚_セーブポイント.md` に現在地と検証結果を記録。保管庫の玄関にも「Codex版38枚」の別カードで掲載。既存の40枚版とは混同・上書きしない。
 
 | 項目 | 状態 |
 |---|---|
@@ -58,7 +58,7 @@ updated: 2026-10-20
 | スライド 40 枚（明るい地） | 完成。1 ファイル HTML と PDF を `納品/` に出力。**SHO の通し確認待ち** |
 | ブラウザ用ページ | https://claude.ai/artifact/2nXrEX4QhtbjQacZkQJuXR（非公開。SHO のアカウントで開く） |
 | 配布用コピー | デスクトップ `AI勉強会10月度分`（このPCのみ） |
-| GitHub（履歴用・非公開） | `e-almighty/almighty` ブランチ `claude/ai-benkyokai-20261021`、フォルダ `ai-benkyokai-20261021/`。最初のコミット `5262ac4`（64 ファイル・約 23 MB）。ローカルの複製は `C:/Users/user/20260530/almighty`（このPCのみ・Dropbox の外） |
+| GitHub（履歴用・非公開） | `e-almighty/almighty` ブランチ `claude/ai-benkyokai-20261021`、フォルダ `ai-benkyokai-20261021/`。最初のコミット `5262ac4`、Codex版38枚の保存コミット `e4a461b`。ローカルの複製は `C:/Users/user/20260530/almighty`（このPCのみ・Dropbox の外） |
 | 次の一歩 | ① SHO が PDF を通しで確認 ② 直しがあれば `build_deck.py` → `deck_tools.py all` ③ 任意で画面写真・アンケート QR ④ 開催後に結果を記録 |
 | 読む順 | `PROJECT_OVERVIEW.md` → `作業ログ_2026-10-20.md` → `review-notes.md` → リサーチ要約 |
 
