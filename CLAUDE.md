@@ -60,7 +60,7 @@ Almighty-AI-Brain の正本は Dropbox の **`/HIRATA/Obsidian/Almighty-AI-Brain
   - `claude plugin install cloudflare@cloudflare`
   - 確認：`claude plugin list` に `cloudflare@cloudflare` が `enabled` で出る
 - クラウド環境では `/plugin` のスラッシュコマンドは使えない（Claude Code 公式ドキュメントで確認済み・2026-10-30）。SHO に `/plugin …` を貼り付けるよう頼まない。黒い画面（ターミナル）の操作も頼まない
-- MCPサーバー（`https://mcp.cloudflare.com/mcp`）はクラウド環境ではネットワーク制限で接続できず、ブラウザでのログインもできない。Cloudflare の操作は Cloudflare Pages の GitHub 連携（このリポジトリに push すると自動公開）を基本にする。API トークンが必要になったら環境のシークレットに入れてもらい、チャットには貼らせない
+- MCPサーバー（`https://mcp.cloudflare.com/mcp`）はクラウド環境ではネットワーク制限で接続できず、ブラウザでのログインもできない。Cloudflare の操作は Workers（Static Assets）の GitHub 連携（Workers Builds。本線ブランチに push すると自動公開）を基本にする。公開済み：パソコン診断ナビ `pc-shindan-navi/` → https://pc-shindan-navi.amkobe0730.workers.dev（2026-10-30。Root directory `/pc-shindan-navi`、Deploy command `npx wrangler deploy`）。API トークンが必要になったら環境のシークレットに入れてもらい、チャットには貼らせない
 - お金がかかる操作、有料プランへの変更、DNS の変更、何かの削除が要るときは、その前に止まって SHO に確認する
 
 ## SHO と進めるときの決まり
