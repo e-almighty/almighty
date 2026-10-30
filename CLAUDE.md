@@ -53,6 +53,16 @@ Almighty-AI-Brain の正本は Dropbox の **`/HIRATA/Obsidian/Almighty-AI-Brain
 - `.claude/skills/` と `.agents/skills/` は Vault の `05_SKILLS/` の写し。正本は Vault
 - 「スキル作って」と言われたら `.claude/skills/universal-skill-builder/SKILL.md`（どこでもスキル工房）の手順に従う
 
+## Cloudflare（Web 公開）の準備
+
+- Cloudflare に関わる作業（Web ページの公開、Pages、Workers、DNS など）が始まったら、クラウド環境（claude.ai/code）では最初に次の2つを Bash で実行して、Cloudflare 公式プラグイン（スキル19本＋MCPサーバー1つ）を入れる。クラウドの作業場は会話ごとに消えるので、毎回入れ直す。SHO に操作を頼まない
+  - `claude plugin marketplace add cloudflare/skills`
+  - `claude plugin install cloudflare@cloudflare`
+  - 確認：`claude plugin list` に `cloudflare@cloudflare` が `enabled` で出る
+- クラウド環境では `/plugin` のスラッシュコマンドは使えない（Claude Code 公式ドキュメントで確認済み・2026-10-30）。SHO に `/plugin …` を貼り付けるよう頼まない。黒い画面（ターミナル）の操作も頼まない
+- MCPサーバー（`https://mcp.cloudflare.com/mcp`）はクラウド環境ではネットワーク制限で接続できず、ブラウザでのログインもできない。Cloudflare の操作は Cloudflare Pages の GitHub 連携（このリポジトリに push すると自動公開）を基本にする。API トークンが必要になったら環境のシークレットに入れてもらい、チャットには貼らせない
+- お金がかかる操作、有料プランへの変更、DNS の変更、何かの削除が要るときは、その前に止まって SHO に確認する
+
 ## SHO と進めるときの決まり
 
 - SHO は音声入力で話すので誤変換が混じる。意味を推定したら「こう理解しました」と返してから進める
