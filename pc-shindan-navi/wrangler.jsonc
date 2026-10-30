@@ -4,6 +4,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "pc-shindan-navi",
   "compatibility_date": "2026-10-30",
+  // 公開 URL（workers.dev）を常に ON にする。お試し公開（Preview URL）は使わない
+  "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "directory": "./"
   }
