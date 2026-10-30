@@ -1,0 +1,1235 @@
+{
+  "説明": "保管庫の玄関（アプリ玄関.html）に並べる中身の一覧。足したり直したりしたら 同じフォルダで node 玄関を作る.mjs を実行すると 玄関のページが作り直される。tab は app / slide / pdf / image / video。open の file は Vaultの中の相対パス、url はインターネットのアドレス。thumb は表紙の画像（Vaultの中の相対パス・無くてもよい）。say は AIに頼むときの言葉。 manual はマニュアル（label と file か url）。qr は すでにあるQRの画像（label と file）。open の最初が url のものは QRを自動で作る。download は ほかのパソコンへ持っていくためのZIPに入れるファイル（files。名前を変えるときは {file, as}）。note はカードに出す注意書き。",
+  "items": [
+    {
+      "tab": "app",
+      "tag": "店頭iPad・成約の集計",
+      "name": "パソコン相談ナビ",
+      "desc": "10問に答えてもらい 3つのサポートパックを提案します　成約の集計つき",
+      "words": "ipad ヤマダ サポート 相談 アンケート",
+      "open": [
+        {
+          "label": "開く",
+          "url": "https://e-almighty.github.io/pc-navi/"
+        }
+      ],
+      "manual": [
+        {
+          "label": "iPadに入れる手順",
+          "file": "03_PROJECTS/パソコン相談ナビ/iPad導入用QR.html"
+        }
+      ]
+    },
+    {
+      "tab": "app",
+      "tag": "店頭iPad・持ち込みの受付",
+      "name": "パソコン診断ナビ",
+      "desc": "調子の悪いパソコンの持ち込みを 3つの質問と症状の選択で受け付け 技術スタッフにつなぎます　基本診断費2,200円の案内つき",
+      "words": "ipad ヤマダ サポート 診断 受付 持ち込み cloudflare",
+      "open": [
+        {
+          "label": "開く",
+          "url": "https://pc-shindan-navi.amkobe0730.workers.dev"
+        }
+      ],
+      "note": "本体は Git（e-almighty/almighty の pc-shindan-navi）にあり Cloudflare が自動公開　集計の送信先は裏メニューで設定する"
+    },
+    {
+      "tab": "app",
+      "tag": "話してメモ",
+      "name": "ことばノート",
+      "desc": "iPhoneで話すと メモ・買い物・やること・予定に整理します",
+      "words": "iphone 音声 メモ 予定",
+      "open": [
+        {
+          "label": "開く",
+          "url": "https://e-almighty.github.io/kotoba-note/"
+        }
+      ],
+      "manual": [
+        {
+          "label": "導入ガイド",
+          "file": "10_OUTPUTS/MANUALS/2026-09_ことばノート_iPhone導入ガイド.pdf"
+        },
+        {
+          "label": "説明用ガイド",
+          "file": "10_OUTPUTS/MANUALS/2026-09_ことばノート_説明用ガイド.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "app",
+      "tag": "大事な名刺の保管庫",
+      "name": "名刺金庫",
+      "desc": "名刺を撮影して 名前・会社・連絡先と一緒に保存　検索も重要マークも",
+      "words": "名刺 スマホ",
+      "open": [
+        {
+          "label": "開く",
+          "url": "https://claude.ai/code/artifact/0d00ba49-09c4-4822-9fb4-42be2b18a7f3"
+        }
+      ],
+      "download": {
+        "files": [
+          {
+            "file": "03_PROJECTS/携帯アプリ3点/meishi-kinko.html",
+            "as": "名刺金庫.html"
+          }
+        ]
+      }
+    },
+    {
+      "tab": "app",
+      "tag": "ChatGPTへのお願い上手",
+      "name": "プロンプト工房",
+      "desc": "質問に答えるだけで ChatGPTにそのまま投げられるプロンプトが完成",
+      "words": "プロンプト chatgpt スマホ",
+      "open": [
+        {
+          "label": "開く",
+          "url": "https://claude.ai/code/artifact/bc623441-19ee-4cb4-8fe7-00c2a87c630b"
+        }
+      ],
+      "manual": [
+        {
+          "label": "紹介チラシ",
+          "file": "03_PROJECTS/携帯アプリ3点/プロンプト工房_配布用チラシ.pdf"
+        }
+      ],
+      "download": {
+        "files": [
+          {
+            "file": "03_PROJECTS/携帯アプリ3点/prompt-kobo.html",
+            "as": "プロンプト工房.html"
+          },
+          "03_PROJECTS/携帯アプリ3点/プロンプト工房_配布用チラシ.pdf"
+        ]
+      }
+    },
+    {
+      "tab": "app",
+      "tag": "じぶん専用AIアシスタント",
+      "name": "プロンプトつく～る",
+      "desc": "自分専用AIアシスタントの「起動プロンプト」を1枚つくります",
+      "words": "gpts プロンプト アシスタント",
+      "open": [
+        {
+          "label": "開く",
+          "url": "https://claude.ai/code/artifact/d6310a72-1db6-4997-b0a9-fe9888b1d97e"
+        }
+      ],
+      "manual": [
+        {
+          "label": "使い方ガイド",
+          "url": "https://claude.ai/code/artifact/1447c4f4-e752-4f4d-a0a7-f9d3ff25315f"
+        }
+      ],
+      "download": {
+        "files": [
+          {
+            "file": "03_PROJECTS/GPTsつく～る/最終版_2026-08-25/プロンプトつく～る_最終版.html",
+            "as": "プロンプトつく～る.html"
+          },
+          {
+            "file": "03_PROJECTS/GPTsつく～る/最終版_2026-08-25/プロンプトつく～る_使い方ガイド_最終版.html",
+            "as": "プロンプトつく～る_使い方ガイド.html"
+          }
+        ]
+      }
+    },
+    {
+      "tab": "app",
+      "tag": "書類づくり3点セット",
+      "name": "つく～る",
+      "desc": "ワード・エクセル・パワポの3つを1枚にまとめたもの　開くとメニューが出ます",
+      "words": "ワード エクセル パワポ 書類 word excel powerpoint",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/つく～る/つく～る.html"
+        }
+      ],
+      "manual": [
+        {
+          "label": "導入マニュアル",
+          "file": "03_PROJECTS/つく～る/導入マニュアル.html"
+        }
+      ],
+      "note": "ここにあるのは平田さん用（期限なし）です　お客さまに渡すときは 販売用をAIに作ってもらってください"
+    },
+    {
+      "tab": "app",
+      "tag": ".docx をつくる",
+      "name": "ワードつく～る",
+      "desc": "質問に答えるだけで ワードの書類ができます（32種類）",
+      "words": "word 書類 文書",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/ワードつく～る/ワードつく～る.html"
+        }
+      ],
+      "note": "ここにあるのは平田さん用（期限なし）です　お客さまに渡すときは 販売用をAIに作ってもらってください"
+    },
+    {
+      "tab": "app",
+      "tag": ".xlsx をつくる",
+      "name": "エクセルつく～る",
+      "desc": "質問に答えるだけで エクセルの表ができます",
+      "words": "excel 表",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/エクセルつく～る/エクセルつく～る.html"
+        }
+      ],
+      "note": "ここにあるのは平田さん用（期限なし）です　お客さまに渡すときは 販売用をAIに作ってもらってください"
+    },
+    {
+      "tab": "app",
+      "tag": ".pptx をつくる",
+      "name": "パワポつく～る",
+      "desc": "質問に答えるだけで パワーポイントの資料ができます（10種類）",
+      "words": "powerpoint スライド 資料",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/パワポつく～る/パワポつく～る.html"
+        }
+      ],
+      "note": "ここにあるのは平田さん用（期限なし）です　お客さまに渡すときは 販売用をAIに作ってもらってください"
+    },
+    {
+      "tab": "app",
+      "tag": "調べものの手伝い",
+      "name": "リサーチつく～る",
+      "desc": "AI勉強会で使った リサーチ用のつく～る",
+      "words": "リサーチ 調査",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/AI勉強会_20260826/app/リサーチつく～る.html"
+        }
+      ],
+      "download": {
+        "files": [
+          "03_PROJECTS/AI勉強会_20260826/app/リサーチつく～る.html"
+        ]
+      }
+    },
+    {
+      "tab": "app",
+      "tag": "考えの整理",
+      "name": "壁打ちくん",
+      "desc": "考えを整理する壁打ちの相手（HTML版）",
+      "words": "壁打ち 相談 アイデア",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/壁打ちくん配布/壁打ちくん.html"
+        }
+      ],
+      "manual": [
+        {
+          "label": "マニュアル",
+          "file": "03_PROJECTS/壁打ちくん配布/壁打ちくんマニュアル.html"
+        },
+        {
+          "label": "QR案内シート",
+          "file": "03_PROJECTS/壁打ちくん配布/壁打ちくんQR案内シート.html"
+        }
+      ],
+      "qr": [
+        {
+          "label": "HTML版",
+          "file": "03_PROJECTS/壁打ちくん配布/QR_HTML版壁打ち.png"
+        },
+        {
+          "label": "ChatGPT版",
+          "file": "03_PROJECTS/壁打ちくん配布/QR_ChatGPT壁打ち.png"
+        }
+      ],
+      "download": {
+        "files": [
+          "03_PROJECTS/壁打ちくん配布/壁打ちくん.html",
+          "03_PROJECTS/壁打ちくん配布/壁打ちくんマニュアル.html",
+          "03_PROJECTS/壁打ちくん配布/壁打ちくんQR案内シート.html",
+          "03_PROJECTS/壁打ちくん配布/QR_HTML版壁打ち.png",
+          "03_PROJECTS/壁打ちくん配布/QR_ChatGPT壁打ち.png"
+        ]
+      }
+    },
+    {
+      "tab": "app",
+      "tag": "勉強会",
+      "name": "参加者アンケート",
+      "desc": "勉強会の参加者アンケート",
+      "words": "アンケート セミナー",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/AI勉強会_20260826/app/参加者アンケート.html"
+        }
+      ],
+      "qr": [
+        {
+          "label": "アンケートを開くQR",
+          "file": "03_PROJECTS/AI勉強会_20260826/app/参加者アンケートQR.png"
+        }
+      ]
+    },
+    {
+      "tab": "app",
+      "tag": "営業用サンプル",
+      "name": "HP制作ポートフォリオ",
+      "desc": "ホームページ制作の見本サイト6業種（すべて架空のお店）",
+      "words": "ホームページ サンプル 営業",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/HP制作ポートフォリオ/index.html"
+        }
+      ]
+    },
+    {
+      "tab": "app",
+      "tag": "iPadの導入",
+      "name": "相談ナビ iPad導入用QR",
+      "desc": "パソコン相談ナビをiPadに入れるときのQRと手順",
+      "words": "ipad qr 導入",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/パソコン相談ナビ/iPad導入用QR.html"
+        }
+      ]
+    },
+    {
+      "tab": "app",
+      "tag": "店舗の業務",
+      "name": "PCサポート業務ダッシュボード",
+      "desc": "売上・案件・今日の対応・顧客管理を1画面で見ます",
+      "words": "ダッシュボード 顧客 売上",
+      "say": "保管庫の業務ダッシュボードを起動して"
+    },
+    {
+      "tab": "app",
+      "tag": "脳の活性化ゲーム30本",
+      "name": "あたまのおやつ",
+      "desc": "iPhone向けの脳活ゲーム（まだ公開していません）",
+      "words": "脳活 ゲーム iphone",
+      "say": "保管庫のあたまのおやつを起動して"
+    },
+    {
+      "tab": "app",
+      "tag": "AIで物語づくり",
+      "name": "ものがたり工房",
+      "desc": "テーマをもとに物語を作り　編集　読み上げ　印刷までできます",
+      "words": "物語 小説 ai 読み上げ 印刷",
+      "open": [
+        {
+          "label": "開く",
+          "url": "https://monogatari-kobo.almighty.chatgpt.site"
+        }
+      ]
+    },
+    {
+      "tab": "app",
+      "tag": "ホームページ構想",
+      "name": "七転び八起き会HP",
+      "desc": "日本営業協会 関西支部・七転び八起き会のホームページ構想（第11版・コンセプト案）　写真はAI制作のイメージ　人に渡すときはダウンロードのZIP",
+      "words": "ななころび 七転び八起き nanakorobi 営業協会 関西支部 ホームページ hp サイト 構想",
+      "open": [
+        {
+          "label": "開く",
+          "file": "03_PROJECTS/七転び八起き会HP/site/index.html"
+        }
+      ],
+      "download": {
+        "files": [
+          "03_PROJECTS/七転び八起き会HP/配布用/七転び八起き会HP_サイト一式.zip"
+        ]
+      },
+      "note": "活動内容・日程・連絡先は未確定　インターネット公開は未実施"
+    },
+    {
+      "tab": "app",
+      "tag": "オンライン勉強会 2026-11-27・第1回",
+      "name": "えんつなぎバンク AI勉強会 第1回",
+      "desc": "AIを仕事や暮らしに役立てる 初心者向けのオンライン勉強会　20時30分から21時30分　参加費500円",
+      "words": "えんつなぎ 縁つなぎ バンク ai 勉強会 セミナー オンライン 初心者 2026-11-27 第1回",
+      "open": [
+        {
+          "label": "公開ページを開く",
+          "url": "https://e-almighty.github.io/nanakorobi-yaoki/entsunagi-seminar/"
+        },
+        {
+          "label": "保存版を開く",
+          "file": "10_OUTPUTS/えんつなぎバンク/えんつなぎバンク_AI勉強会_第1回.html"
+        }
+      ],
+      "note": "プログラムは告知用の提案案　講師との最終調整後に確定します"
+    },
+    {
+      "tab": "app",
+      "tag": "オンライン勉強会 2026-12-19・第2回",
+      "name": "えんつなぎバンク AI勉強会 第2回",
+      "desc": "AIを仕事や暮らしに役立てる 初心者向けのオンライン勉強会　20時30分から21時30分　参加費500円",
+      "words": "えんつなぎ 縁つなぎ バンク ai 勉強会 セミナー オンライン 初心者 2026-12-19 第2回",
+      "open": [
+        {
+          "label": "公開ページを開く",
+          "url": "https://e-almighty.github.io/nanakorobi-yaoki/entsunagi-seminar-2/"
+        },
+        {
+          "label": "保存版を開く",
+          "file": "10_OUTPUTS/えんつなぎバンク/えんつなぎバンク_AI勉強会_第2回.html"
+        }
+      ],
+      "note": "プログラムは告知用の提案案　講師との最終調整後に確定します"
+    },
+    {
+      "tab": "slide",
+      "tag": "勉強会 2026-10-21・第一部AI（40枚）",
+      "name": "Astra を味方にする夜",
+      "desc": "日本営業協会の勉強会 第一部AI　GPT-6 Astra の正体・できること・使い方・任せ方・注意点と Claude Code（Fable 5.1）との対比　40枚　明るい地",
+      "words": "ai勉強会 astra gpt-6 claude fable 営業協会 セミナー 2026-10-21",
+      "thumb": "03_PROJECTS/AI勉強会_20261021/screenshots/final/slide_001.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "03_PROJECTS/AI勉強会_20261021/納品/第一部AI_Astraを味方にする夜_2026-10-21.html"
+        },
+        {
+          "label": "PDF",
+          "file": "03_PROJECTS/AI勉強会_20261021/納品/第一部AI_Astraを味方にする夜_2026-10-21.pdf"
+        },
+        {
+          "label": "ブラウザ（claude.ai）",
+          "url": "https://claude.ai/artifact/2nXrEX4QhtbjQacZkQJuXR"
+        }
+      ],
+      "manual": [
+        {
+          "label": "話者ノート・案件ノート",
+          "file": "03_PROJECTS/AI勉強会_20261021/PROJECT_OVERVIEW.md"
+        }
+      ],
+      "download": {
+        "files": [
+          "03_PROJECTS/AI勉強会_20261021/納品/第一部AI_Astraを味方にする夜_2026-10-21.html",
+          "03_PROJECTS/AI勉強会_20261021/納品/第一部AI_Astraを味方にする夜_2026-10-21.pdf"
+        ]
+      },
+      "note": "claude.ai のページは非公開（SHO のアカウントで開く）。配布用コピーはデスクトップの「AI勉強会10月度分」にもある"
+    },
+    {
+      "tab": "slide",
+      "tag": "勉強会 2026-08-26・第1部（9枚）",
+      "name": "自分専用の壁打ちAI",
+      "desc": "AI勉強会の第1部　AIを壁打ちの相手にする方法",
+      "words": "ai勉強会 壁打ち セミナー",
+      "thumb": "03_PROJECTS/AI勉強会_20260826/screenshots/final/deck3-kabeuchi/slide_001.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "03_PROJECTS/AI勉強会_20260826/納品/第1部_自分専用の壁打ちAI.html"
+        },
+        {
+          "label": "PDF",
+          "file": "03_PROJECTS/AI勉強会_20260826/納品/第1部_自分専用の壁打ちAI.pdf"
+        }
+      ],
+      "download": {
+        "files": [
+          "03_PROJECTS/AI勉強会_20260826/納品/第1部_自分専用の壁打ちAI.html"
+        ]
+      }
+    },
+    {
+      "tab": "slide",
+      "tag": "勉強会 2026-08-26・第2部（10枚）",
+      "name": "AIリサーチ術",
+      "desc": "AI勉強会の第2部　AIを使った調べものの方法",
+      "words": "ai勉強会 リサーチ セミナー",
+      "thumb": "03_PROJECTS/AI勉強会_20260826/screenshots/final/deck2-research/slide_001.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "03_PROJECTS/AI勉強会_20260826/納品/第2部_AIリサーチ術.html"
+        },
+        {
+          "label": "PDF",
+          "file": "03_PROJECTS/AI勉強会_20260826/納品/第2部_AIリサーチ術.pdf"
+        }
+      ],
+      "download": {
+        "files": [
+          "03_PROJECTS/AI勉強会_20260826/納品/第2部_AIリサーチ術.html"
+        ]
+      }
+    },
+    {
+      "tab": "slide",
+      "tag": "勉強会 2026-08-26・第3部（10枚）",
+      "name": "GPTs量産ワークショップ",
+      "desc": "AI勉強会の第3部　自分用のAIアシスタントを作るワーク",
+      "words": "ai勉強会 gpts ワークショップ セミナー",
+      "thumb": "03_PROJECTS/AI勉強会_20260826/screenshots/final/deck1-gpts/slide_001.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "03_PROJECTS/AI勉強会_20260826/納品/第3部_GPTs量産ワークショップ.html"
+        },
+        {
+          "label": "PDF",
+          "file": "03_PROJECTS/AI勉強会_20260826/納品/第3部_GPTs量産ワークショップ.pdf"
+        }
+      ],
+      "download": {
+        "files": [
+          "03_PROJECTS/AI勉強会_20260826/納品/第3部_GPTs量産ワークショップ.html"
+        ]
+      }
+    },
+    {
+      "tab": "slide",
+      "tag": "勉強会 2026-08-15・やさしい版",
+      "name": "エレコム ルーター勉強会",
+      "desc": "ルーターの基本を やさしく説明する版",
+      "words": "エレコム ルーター wifi 勉強会",
+      "thumb": "05_SKILLS/seminar-presentation-deck/output/2026-08-15_elecom-router-basics/screenshots/final/スライド1.PNG",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "05_SKILLS/seminar-presentation-deck/output/2026-08-15_elecom-router-basics/slides/エレコム_ルーター勉強会_やさしい版.pptx"
+        },
+        {
+          "label": "PDF",
+          "file": "05_SKILLS/seminar-presentation-deck/output/2026-08-15_elecom-router-basics/slides/エレコム_ルーター勉強会_やさしい版.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "勉強会 2026-08-15・10分ショート版",
+      "name": "エレコム ルーター勉強会（短い版）",
+      "desc": "ルーターの基本を10分で説明する版",
+      "words": "エレコム ルーター wifi 勉強会 ショート",
+      "thumb": "05_SKILLS/seminar-presentation-deck/output/2026-08-15_elecom-router-basics/screenshots/short/スライド1.PNG",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "05_SKILLS/seminar-presentation-deck/output/2026-08-15_elecom-router-basics/slides/エレコム_ルーター勉強会_10分ショート版.pptx"
+        },
+        {
+          "label": "PDF",
+          "file": "05_SKILLS/seminar-presentation-deck/output/2026-08-15_elecom-router-basics/slides/エレコム_ルーター勉強会_10分ショート版.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "セミナー 2026-08-16",
+      "name": "AIっぽさは、才能ではなく設計で消える",
+      "desc": "AIの文章を自然にする方法",
+      "words": "ai 文章 ライティング セミナー",
+      "thumb": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-16_ai-humanize-writing/screenshots/final/slide_001.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-16_ai-humanize-writing/deck-standalone.html"
+        },
+        {
+          "label": "PowerPoint",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-16_ai-humanize-writing/AIっぽさは、才能ではなく設計で消える.pptx"
+        },
+        {
+          "label": "PDF",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-16_ai-humanize-writing/AIっぽさは、才能ではなく設計で消える.pdf"
+        }
+      ],
+      "download": {
+        "files": [
+          "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-16_ai-humanize-writing/deck-standalone.html"
+        ]
+      }
+    },
+    {
+      "tab": "slide",
+      "tag": "提案 2026-08-14・濃い色の版",
+      "name": "RE-ASO 阿蘇観光再構築プロジェクト",
+      "desc": "阿蘇の観光再構築の提案",
+      "words": "阿蘇 観光 提案 re-aso",
+      "thumb": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-14_re-aso-tourism-recovery/screenshots/final/slide-01.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-14_re-aso-tourism-recovery/slides/index.html"
+        },
+        {
+          "label": "PowerPoint",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-14_re-aso-tourism-recovery/RE-ASO_阿蘇観光再構築プロジェクト.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "提案 2026-08-14・明るい色の版",
+      "name": "RE-ASO（明るい色の版）",
+      "desc": "阿蘇の観光再構築の提案　明るい背景の版",
+      "words": "阿蘇 観光 提案 re-aso ライト",
+      "thumb": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-14_re-aso-tourism-recovery/RE-ASO-light-deck/slide-1.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-14_re-aso-tourism-recovery/slides-light/index.html"
+        },
+        {
+          "label": "PowerPoint",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-08-14_re-aso-tourism-recovery/RE-ASO-light-deck.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "ワークショップ 2026-07-25",
+      "name": "arcle GitHubワークショップ",
+      "desc": "GitHubのワークショップ",
+      "words": "github ワークショップ arcle",
+      "thumb": "05_SKILLS/seminar-presentation-deck/output/archive/2026-07-25_arcle-github-workshop/screenshots/final/slide_001.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "05_SKILLS/seminar-presentation-deck/output/archive/2026-07-25_arcle-github-workshop/slides/index.html"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "セミナー資料",
+      "name": "商工会議所セミナー 書類仕事を10分の1に",
+      "desc": "つく～るを紹介するセミナー資料",
+      "words": "商工会議所 つく～る セミナー 書類",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "03_PROJECTS/つく～る/セミナー資料/商工会議所セミナー_書類仕事を10分の1に.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "提案資料・使う前にノートを読む",
+      "name": "PCサポート提案",
+      "desc": "セッティングおまかせと自己作業の比較　元の資料に事実と違う「1年保証」の記述が残っています",
+      "words": "pcサポート 提案 比較",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "03_PROJECTS/PCサポート提案/files/pc_support_proposal.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "計画資料 2025年度（7枚）",
+      "name": "連結損益計算書 POP版",
+      "desc": "2025年度の計画と主な数字を見やすくまとめた資料",
+      "words": "損益 計画 売上 利益 pop",
+      "open": [
+        {
+          "label": "ブラウザで見る",
+          "file": "10_OUTPUTS/SLIDES/連結損益計算書_POP版.html"
+        },
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/連結損益計算書_POP版.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "戦略資料（15枚）",
+      "name": "12月 勝利戦略",
+      "desc": "12月の方針と実行計画をまとめた資料",
+      "words": "12月 勝利 戦略 計画",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/12月_勝利戦略 (1).pptx"
+        }
+      ],
+      "note": "画像中心の資料です　内容は使う前に確認してください"
+    },
+    {
+      "tab": "slide",
+      "tag": "実績報告（12枚）",
+      "name": "9月度 実績報告と注力事項の徹底",
+      "desc": "実績と今後の注力事項をまとめた資料",
+      "words": "9月 実績 報告 注力事項",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/9月度 実績報告と注力事項の徹底 2025.12.22 (1).pptx"
+        }
+      ],
+      "note": "ファイル名の日付と表紙の日付に違いがあります　使う前に確認してください"
+    },
+    {
+      "tab": "slide",
+      "tag": "市場調査 2026年（10枚）",
+      "name": "日本国内パソコン市場の売れ行き動向",
+      "desc": "国内パソコン市場の出荷と需要の動きをまとめた資料",
+      "words": "pc パソコン 市場 出荷 需要 2026",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/japan_pc_market_trend_2020_2026.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "市場調査 2026年（11枚）",
+      "name": "日本のPCサポート市場動向",
+      "desc": "個人と法人のPCサポート需要をまとめた資料",
+      "words": "pc サポート 市場 法人 個人 2026",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/japan_pc_support_market_trend_2026.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "事業分析 2026年（11枚）",
+      "name": "AI時代のPCサポート事業の将来性",
+      "desc": "AI時代に変わるPCセットアップとサポート事業を考える資料",
+      "words": "ai pc サポート 将来性 セットアップ",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/ai_pc_support_business_future_2026.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "営業戦略 2026年（12枚）",
+      "name": "PCサポート事業の顧客訴求・アピール戦略",
+      "desc": "PCサポートをお客さまへ伝える方法をまとめた資料",
+      "words": "pc サポート 営業 訴求 アピール",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/pc_support_customer_appeal_strategy_2026.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "調査資料（14枚）",
+      "name": "PCサポートの有料化と電話サポート縮小",
+      "desc": "量販店とメーカーのPCサポート範囲をまとめた資料",
+      "words": "pc サポート 有料 電話 メーカー 量販店",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/PC.pptx"
+        }
+      ],
+      "note": "料金やサービス範囲は使う前に最新情報を確認してください"
+    },
+    {
+      "tab": "slide",
+      "tag": "提案フロー（3枚）",
+      "name": "ES方式 PCサポート加入提案フロー",
+      "desc": "店頭の聞き取りからPCサポート提案へつなげる流れ",
+      "words": "es pc サポート 提案 フロー 店頭",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/ES_PC_support_flowchart.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "店頭診断（13枚）",
+      "name": "Yes No PCサポート診断",
+      "desc": "質問に答えながらPCサポートの必要性を案内する資料",
+      "words": "yes no pc サポート 診断",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/interactive_pc_support_flowchart.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "店頭診断（68枚）",
+      "name": "パソコンサポート判定フローチャート",
+      "desc": "10問の回答数でPCサポートの案内を分ける資料",
+      "words": "pc サポート 判定 フローチャート 点数",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/pc_support_score_flowchart_fixed_logic.pptx"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "PCサポート（11枚）",
+      "name": "The PC Setup Boundary",
+      "desc": "PC設定で対応できる範囲とできない範囲を整理した資料",
+      "words": "pc setup boundary 設定 サポート 範囲",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/The_PC_Setup_Boundary_(13).pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "PCサポート（2枚）",
+      "name": "Total PC Assurance",
+      "desc": "PC購入後の安心とサポートを伝える資料",
+      "words": "pc assurance 安心 サポート",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/Total_PC_Assurance_(6).pdf"
+        }
+      ],
+      "note": "英語名の資料です　内容は使う前に確認してください"
+    },
+    {
+      "tab": "slide",
+      "tag": "行動計画 2026年1月（13枚）",
+      "name": "January Action and Breakthrough",
+      "desc": "1月の行動と突破口をまとめた資料",
+      "words": "january action breakthrough 1月 行動",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/January_Action_and_Breakthrough.pdf"
+        }
+      ],
+      "note": "英語名の資料です　内容は使う前に確認してください"
+    },
+    {
+      "tab": "slide",
+      "tag": "AI活用（20枚）",
+      "name": "Mastering NotebookLM",
+      "desc": "NotebookLMの活用方法をまとめた資料",
+      "words": "notebooklm ai 活用",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/Mastering_NotebookLM.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "AI活用（21枚）",
+      "name": "Your Gentle AI Assistant",
+      "desc": "身近なAIアシスタントの使い方を紹介する資料",
+      "words": "ai assistant アシスタント 入門",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/Your_Gentle_AI_Assistant.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "ChatGPT入門（14枚）",
+      "name": "ChatGPT Starter Guide",
+      "desc": "ChatGPTを初めて使う人向けのガイド",
+      "words": "chatgpt starter guide 入門",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/ChatGPT_Starter_Guide.pdf 2.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "セキュリティ（20枚）",
+      "name": "2026 Digital Safety Essentials",
+      "desc": "2026年に気をつけたいデジタル安全の基本",
+      "words": "security セキュリティ digital safety 2026",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/2026_Digital_Safety_Essentials.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "セキュリティ（15枚）",
+      "name": "Cybersecurity 2026",
+      "desc": "2026年のサイバーセキュリティをまとめた資料",
+      "words": "cybersecurity セキュリティ 2026",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/Cybersecurity_2026.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "セキュリティ（11枚）",
+      "name": "2026年 いま本当に気をつけたいセキュリティリスク",
+      "desc": "身近なセキュリティリスクと注意点をまとめた資料",
+      "words": "セキュリティ リスク 詐欺 2026",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/2026年、いま本当に気をつけたいセキュリティリスク (1).pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "健康計画（8枚）",
+      "name": "180cm 78kgからの肉体改造プラン",
+      "desc": "筋肉質の体を目指すための計画をまとめた資料",
+      "words": "筋トレ 肉体改造 健康 180cm 78kg",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/180cm_78kgからの肉体改造：筋肉質ボディへの戦略プラン.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "slide",
+      "tag": "初心者向けマニュアル 2026-07（16枚）",
+      "name": "はじめてのプロジェクションマッピング",
+      "desc": "壁や部屋に自分でつくった映像を映す方法をまとめた初心者向けマニュアル　0円ではじめる　Windows Mac両対応　3Dマッピングまで",
+      "words": "プロジェクションマッピング 映像 投影 マニュアル 初心者 projection mapping",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/projection_mapping_manual.pdf"
+        },
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/projection_mapping_manual.pptx"
+        }
+      ],
+      "note": "2026-07にCoworkで作成　紹介している道具や料金は使う前に最新情報を確認してください"
+    },
+    {
+      "tab": "slide",
+      "tag": "営業協会の勉強会 2026-09-03・21枚",
+      "name": "SNS×AI営業勉強会 21枚",
+      "desc": "SNSの基本からAI活用と営業導線までをまとめた21枚の勉強会資料",
+      "words": "sns ai 営業 勉強会 営業協会 21枚 集客 導線",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/SNS×AI営業勉強会_21枚.pdf"
+        }
+      ],
+      "download": {
+        "files": [
+          "10_OUTPUTS/SLIDES/SNS×AI営業勉強会_21枚.pdf"
+        ]
+      }
+    },
+    {
+      "tab": "slide",
+      "tag": "営業協会の勉強会 2026-09-03・1〜10枚",
+      "name": "SNS×AI 基本講座 1〜10枚",
+      "desc": "SNSをなんとなくから営業につながる道具へ変える基本講座の前半10枚",
+      "words": "sns ai 基本講座 ベーシック 営業協会 1 10 powerpoint",
+      "open": [
+        {
+          "label": "PowerPoint",
+          "file": "10_OUTPUTS/SLIDES/SNS×AI基本講座_1-10枚.pptx"
+        }
+      ],
+      "download": {
+        "files": [
+          "10_OUTPUTS/SLIDES/SNS×AI基本講座_1-10枚.pptx"
+        ]
+      }
+    },
+    {
+      "tab": "slide",
+      "tag": "勉強会 2026-10-21・第一部AI（Codex版38枚）",
+      "name": "Astra 勉強会：写真・図解入り38枚",
+      "desc": "GPT-6 Astra の使い方と営業への活用　Claude Code Fable 5.1 との比較　写真と図解を増やした別版",
+      "words": "アストラ38 ai勉強会 astra gpt-6 claude fable 営業協会 セミナー 2026-10-21 codex 38枚",
+      "thumb": "03_PROJECTS/AI勉強会_20261021/Codex版_38枚/納品/表紙プレビュー.png",
+      "open": [
+        {
+          "label": "ブラウザで発表する",
+          "file": "03_PROJECTS/AI勉強会_20261021/Codex版_38枚/納品/2026-10-21_Astra勉強会_38枚.html"
+        },
+        {
+          "label": "PDF",
+          "file": "03_PROJECTS/AI勉強会_20261021/Codex版_38枚/納品/2026-10-21_Astra勉強会_38枚.pdf"
+        },
+        {
+          "label": "PowerPoint",
+          "file": "03_PROJECTS/AI勉強会_20261021/Codex版_38枚/納品/2026-10-21_Astra勉強会_38枚_編集用.pptx"
+        }
+      ],
+      "manual": [
+        {
+          "label": "話者ノート・出典",
+          "file": "03_PROJECTS/AI勉強会_20261021/Codex版_38枚/納品/2026-10-21_Astra勉強会_話者ノート.md"
+        },
+        {
+          "label": "セーブポイント",
+          "file": "03_PROJECTS/AI勉強会_20261021/Codex版_38枚/納品/2026-10-20_Astra勉強会_Codex版38枚_セーブポイント.md"
+        }
+      ],
+      "note": "既存の40枚版とは別版　写真とイラストはAI生成素材"
+    },
+    {
+      "tab": "pdf",
+      "tag": "導入ガイド・配布可",
+      "name": "ことばノート iPhone導入ガイド",
+      "desc": "QRコードとSafariでのホーム画面追加の手順",
+      "words": "ことばノート iphone 導入 マニュアル",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/MANUALS/2026-09_ことばノート_iPhone導入ガイド.pdf"
+        },
+        {
+          "label": "ブラウザで見る",
+          "file": "10_OUTPUTS/MANUALS/2026-09_ことばノート_iPhone導入ガイド.html"
+        }
+      ]
+    },
+    {
+      "tab": "pdf",
+      "tag": "説明資料・配布可",
+      "name": "ことばノート 説明用ガイド",
+      "desc": "人に説明するための3枚（導入・使い方・Googleカレンダー自動登録）",
+      "words": "ことばノート 説明 マニュアル",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/MANUALS/2026-09_ことばノート_説明用ガイド.pdf"
+        },
+        {
+          "label": "ブラウザで見る",
+          "file": "10_OUTPUTS/MANUALS/2026-09_ことばノート_説明用ガイド.html"
+        }
+      ]
+    },
+    {
+      "tab": "pdf",
+      "tag": "チラシ・配布用",
+      "name": "プロンプト工房 配布用チラシ",
+      "desc": "プロンプト工房の紹介チラシ",
+      "words": "プロンプト工房 チラシ",
+      "thumb": "03_PROJECTS/携帯アプリ3点/プロンプト工房_配布用チラシ.png",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "03_PROJECTS/携帯アプリ3点/プロンプト工房_配布用チラシ.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "pdf",
+      "tag": "会議のまとめ 2026-09-20",
+      "name": "AI活用・店舗IT機器導入・業務効率化総合会議",
+      "desc": "会話の記録から作られた要約　置いてあるフォルダは自動で消える仕組みなので 残すなら移動が要ります",
+      "words": "会議 要約 eveng2",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "09_INBOX/EvenG2/2026-09-20/AI活用・店舗IT機器導入・業務効率化総合会議_summary.pdf"
+        }
+      ]
+    },
+    {
+      "tab": "pdf",
+      "tag": "エクスマセミナー 2026-09-03・20ページ",
+      "name": "遊ばざる者 働くべからず",
+      "desc": "藤村正宏さんのエクスマセミナー内容をもとに 株式会社オールマイティ向けにまとめた20ページの最終修正版",
+      "words": "藤村正宏 エクスマ exma 遊ばざる者 働くべからず セミナー ai マーケティング",
+      "open": [
+        {
+          "label": "PDF",
+          "file": "10_OUTPUTS/SLIDES/遊ばざる者_働くべからず_株式会社オールマイティ_20ページ最終修正版.pdf"
+        }
+      ],
+      "download": {
+        "files": [
+          "10_OUTPUTS/SLIDES/遊ばざる者_働くべからず_株式会社オールマイティ_20ページ最終修正版.pdf"
+        ]
+      }
+    },
+    {
+      "tab": "image",
+      "tag": "チラシ・配布用",
+      "name": "プロンプト工房 配布用チラシ",
+      "desc": "プロンプト工房の紹介チラシ（画像版）",
+      "words": "プロンプト工房 チラシ",
+      "thumb": "03_PROJECTS/携帯アプリ3点/プロンプト工房_配布用チラシ.png",
+      "open": [
+        {
+          "label": "画像を開く",
+          "file": "03_PROJECTS/携帯アプリ3点/プロンプト工房_配布用チラシ.png"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "QRコード",
+      "name": "プロンプト工房のQR",
+      "desc": "アプリを開くQR　GPT版のQRも同じフォルダにあります",
+      "words": "qr プロンプト工房",
+      "thumb": "03_PROJECTS/携帯アプリ3点/prompt-kobo-qr.png",
+      "open": [
+        {
+          "label": "アプリのQR",
+          "file": "03_PROJECTS/携帯アプリ3点/prompt-kobo-qr.png"
+        },
+        {
+          "label": "GPT版のQR",
+          "file": "03_PROJECTS/携帯アプリ3点/prompt-kobo-gpt-qr.png"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "QRコード",
+      "name": "壁打ちくんのQR",
+      "desc": "HTML版とChatGPT版のQR",
+      "words": "qr 壁打ち",
+      "thumb": "03_PROJECTS/壁打ちくん配布/QR_ChatGPT壁打ち.png",
+      "open": [
+        {
+          "label": "HTML版のQR",
+          "file": "03_PROJECTS/壁打ちくん配布/QR_HTML版壁打ち.png"
+        },
+        {
+          "label": "ChatGPT版のQR",
+          "file": "03_PROJECTS/壁打ちくん配布/QR_ChatGPT壁打ち.png"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "QRコード",
+      "name": "参加者アンケートのQR",
+      "desc": "勉強会の参加者アンケートを開くQR",
+      "words": "qr アンケート 勉強会",
+      "thumb": "03_PROJECTS/AI勉強会_20260826/app/参加者アンケートQR.png",
+      "open": [
+        {
+          "label": "画像を開く",
+          "file": "03_PROJECTS/AI勉強会_20260826/app/参加者アンケートQR.png"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "図解",
+      "name": "AI共通頭脳の構成",
+      "desc": "このVault（AI共通頭脳）の構成を1枚にした図解",
+      "words": "図解 vault ai共通頭脳 構成",
+      "thumb": "05_SKILLS/diagram-maker/output/archive/2026-08-03_almighty-ai-brain-structure/screenshots/almighty-ai-brain-structure-desktop.png",
+      "open": [
+        {
+          "label": "図解を開く",
+          "file": "05_SKILLS/diagram-maker/output/archive/2026-08-03_almighty-ai-brain-structure/diagram.html"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "図解",
+      "name": "問い合わせの流れ",
+      "desc": "問い合わせ対応の流れを1枚にした図解",
+      "words": "図解 問い合わせ フロー",
+      "thumb": "05_SKILLS/diagram-maker/output/archive/2026-07-07_inquiry-flow/screenshots/inquiry-flow-desktop.png",
+      "open": [
+        {
+          "label": "図解を開く",
+          "file": "05_SKILLS/diagram-maker/output/archive/2026-07-07_inquiry-flow/diagram.html"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "図解",
+      "name": "AI社員の有効化",
+      "desc": "AI社員を有効にする手順の図解",
+      "words": "図解 ai社員 有効化",
+      "thumb": "05_SKILLS/diagram-maker/output/archive/2026-08-13_ai-employee-activation/screenshots/ai-employee-activation-1280w-part1.png",
+      "open": [
+        {
+          "label": "図解を開く",
+          "file": "05_SKILLS/diagram-maker/output/archive/2026-08-13_ai-employee-activation/diagram.html"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "図解",
+      "name": "AI社員の入口",
+      "desc": "AI社員をどこから呼び出すかの図解",
+      "words": "図解 ai社員 入口",
+      "thumb": "05_SKILLS/diagram-maker/output/archive/2026-08-18_ai-employee-entry-points/screenshots/ai-employee-entry-points-1280w-part1.png",
+      "open": [
+        {
+          "label": "図解を開く",
+          "file": "05_SKILLS/diagram-maker/output/archive/2026-08-18_ai-employee-entry-points/diagram.html"
+        }
+      ]
+    },
+    {
+      "tab": "image",
+      "tag": "図解",
+      "name": "AI社員を登録する仕組み",
+      "desc": "AI社員の登録の仕組みの図解",
+      "words": "図解 ai社員 登録",
+      "open": [
+        {
+          "label": "図解を開く",
+          "file": "05_SKILLS/diagram-maker/output/archive/2026-08-05_ai-employee-registration-mechanism/diagram.html"
+        }
+      ]
+    },
+    {
+      "tab": "video",
+      "tag": "スライドを動画にしたもの・実写ではありません",
+      "name": "PCセットアップおまかせ",
+      "desc": "PCセットアップ代行の解説動画　保証の表現に注意して使います",
+      "words": "動画 pcセットアップ 解説",
+      "thumb": "05_SKILLS/explainer-video/output/2026-08-18_pc-setup-omakase/slides/slide_001.png",
+      "open": [
+        {
+          "label": "動画を開く",
+          "file": "05_SKILLS/explainer-video/output/2026-08-18_pc-setup-omakase/final.mp4"
+        },
+        {
+          "label": "動きのある版",
+          "file": "05_SKILLS/explainer-video/output/2026-08-18_pc-setup-omakase/final_anim.mp4"
+        }
+      ]
+    }
+  ]
+}
+
