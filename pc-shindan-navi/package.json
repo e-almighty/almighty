@@ -1,0 +1,11 @@
+{
+  "name": "pc-shindan-navi",
+  "private": true,
+  "description": "パソコン診断ナビ（店頭 iPad 用）を Cloudflare Workers Static Assets で公開するための設定",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  }
+}

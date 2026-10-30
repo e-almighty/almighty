@@ -1,0 +1,10 @@
+// Cloudflare Workers（Static Assets）の設定：このフォルダをそのまま静的サイトとして公開する
+// 公開から外すファイルは .assetsignore に書く
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pc-shindan-navi",
+  "compatibility_date": "2026-10-30",
+  "assets": {
+    "directory": "./"
+  }
+}
