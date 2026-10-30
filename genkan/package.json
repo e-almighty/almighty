@@ -1,0 +1,13 @@
+{
+  "name": "almighty-genkan",
+  "private": true,
+  "description": "保管庫の玄関（インターネット版）を Cloudflare Workers Static Assets で公開するための設定",
+  "scripts": {
+    "build": "node build.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "qrcode-generator": "2.0.4",
+    "wrangler": "^4.156.0"
+  }
+}
