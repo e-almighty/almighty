@@ -1,0 +1,10 @@
+# 公開しないもの（Cloudflare にアップロードしない）
+gas/
+README.md
+wrangler.jsonc
+package.json
+package-lock.json
+node_modules/
+.nojekyll
+.gitignore
+.assetsignore
